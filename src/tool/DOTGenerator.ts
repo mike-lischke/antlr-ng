@@ -5,8 +5,6 @@
 
 /* eslint-disable jsdoc/require-param, jsdoc/require-returns */
 
-import { fileURLToPath } from "node:url";
-
 import {
     ATNConfig, ATNState, AbstractPredicateTransition, ActionTransition, AtomTransition, BlockEndState, BlockStartState,
     DFA, DFAState, DecisionState, NotSetTransition, PlusBlockStartState, PlusLoopbackState, RangeTransition,
@@ -21,7 +19,7 @@ import { Grammar } from "./Grammar.js";
 /** The DOT (part of graphviz) generation aspect. */
 export class DOTGenerator {
     /** Library of output templates; use `<attrname>` format. */
-    private static readonly templatePath = fileURLToPath(new URL("../../templates/dot/graphs.stg", import.meta.url));
+    private static readonly templatePath = "/templates/dot/graphs.stg";
 
     private static readonly stLib = new STGroupFile(this.templatePath);
 

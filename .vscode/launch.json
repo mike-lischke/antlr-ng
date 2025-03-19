@@ -126,7 +126,9 @@
             "program": "${workspaceFolder}/node_modules/vitest/vitest.mjs",
             "args": [
                 "run",
-                "${relativeFile}"
+                "${relativeFile}",
+                "--test-timeout",
+                "0"
             ],
             "autoAttachChildProcesses": true,
             "skipFiles": [

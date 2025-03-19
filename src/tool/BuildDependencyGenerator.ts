@@ -3,10 +3,7 @@
  * Licensed under the BSD 3-clause License. See License.txt in the project root for license information.
  */
 
-import { fileURLToPath } from "node:url";
-
-import type { IST } from "stringtemplate4ts";
-import { STGroupFile, type STGroup } from "stringtemplate4ts";
+import { STGroupFile, type STGroup, type IST } from "stringtemplate4ts";
 
 import { Constants } from "../Constants.js";
 import { Tool } from "../Tool.js";
@@ -218,8 +215,7 @@ export class BuildDependencyGenerator {
             return;
         }
 
-        const templatePath = fileURLToPath(new URL("../../templates/depend.stg", import.meta.url));
-        this.templates = new STGroupFile(templatePath, "utf-8");
+        this.templates = new STGroupFile("/templates/depend.stg", "utf-8");
     }
 
     public getGenerator(): CodeGenerator {

@@ -4,12 +4,12 @@
  */
 
 import { ATNSerializer, CharStream, CommonTokenStream } from "antlr4ng";
-import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { basename, dirname, isAbsolute, join } from "node:path";
 
 import { ANTLRv4Parser } from "./generated/ANTLRv4Parser.js";
 
 import { ClassFactory } from "./ClassFactory.js";
+import { Constants } from "./Constants.js";
 import { UndefChecker } from "./UndefChecker.js";
 import { AnalysisPipeline } from "./analysis/AnalysisPipeline.js";
 import { IATNFactory } from "./automata/IATNFactory.js";
@@ -25,7 +25,7 @@ import { GrammarType } from "./support/GrammarType.js";
 import { LogManager } from "./support/LogManager.js";
 import { ParseTreeToASTConverter } from "./support/ParseTreeToASTConverter.js";
 import { convertArrayToString } from "./support/helpers.js";
-import { parseToolParameters, type IToolParameters } from "./tool-parameters.js";
+import { fileSystem, parseToolParameters, type IToolParameters } from "./tool-parameters.js";
 import { BuildDependencyGenerator } from "./tool/BuildDependencyGenerator.js";
 import { DOTGenerator } from "./tool/DOTGenerator.js";
 import { ErrorManager } from "./tool/ErrorManager.js";
@@ -38,7 +38,6 @@ import { GrammarAST } from "./tool/ast/GrammarAST.js";
 import { GrammarRootAST } from "./tool/ast/GrammarRootAST.js";
 import type { RuleAST } from "./tool/ast/RuleAST.js";
 import type { IGrammar, ITool } from "./types.js";
-import { Constants } from "./Constants.js";
 
 export class Tool implements ITool {
     public readonly logMgr = new LogManager();
@@ -232,7 +231,7 @@ export class Tool implements ITool {
             const interpFile = Tool.generateInterpreterData(g);
             try {
                 const fileName = this.getOutputFile(g, g.name + ".interp");
-                writeFileSync(fileName, interpFile);
+                fileSystem.writeFileSync(fileName, interpFile);
             } catch (ioe) {
                 this.errorManager.toolError(IssueCode.CannotWriteFile, ioe);
             }
@@ -377,8 +376,8 @@ export class Tool implements ITool {
     public parseGrammar(fileName: string): GrammarRootAST | undefined {
         try {
             const encoding = this.toolParameters.encoding ?? "utf-8";
-            const content = readFileSync(fileName, { encoding: encoding as BufferEncoding });
-            const input = CharStream.fromString(content);
+            const content = fileSystem.readFileSync(fileName, { encoding: encoding as BufferEncoding });
+            const input = CharStream.fromString(content as string);
             input.name = basename(fileName);
 
             return this.parse(input);
@@ -434,8 +433,8 @@ export class Tool implements ITool {
             }
 
             const grammarEncoding = this.toolParameters.encoding as BufferEncoding;
-            const content = readFileSync(importedFile, { encoding: grammarEncoding });
-            const input = CharStream.fromString(content);
+            const content = fileSystem.readFileSync(importedFile, { encoding: grammarEncoding });
+            const input = CharStream.fromString(content as string);
             input.name = basename(importedFile);
 
             const result = this.parse(input);
@@ -510,8 +509,8 @@ export class Tool implements ITool {
         const outputDir = this.getOutputDirectory(g.fileName);
         const outputFile = join(outputDir, fileName);
 
-        if (!existsSync(outputDir)) {
-            mkdirSync(outputDir, { recursive: true });
+        if (!fileSystem.existsSync(outputDir)) {
+            fileSystem.mkdirSync(outputDir, { recursive: true });
         }
 
         return outputFile;
@@ -519,17 +518,17 @@ export class Tool implements ITool {
 
     public getImportedGrammarFile(g: Grammar, fileName: string): string | undefined {
         let candidate = fileName;
-        if (!existsSync(candidate)) {
+        if (!fileSystem.existsSync(candidate)) {
             // Check the parent dir of input directory..
             const parentDir = dirname(g.fileName);
             candidate = join(parentDir, fileName);
 
             // Try in lib dir.
-            if (!existsSync(candidate)) {
+            if (!fileSystem.existsSync(candidate)) {
                 const libDirectory = this.toolParameters.lib;
                 if (libDirectory) {
                     candidate = join(libDirectory, fileName);
-                    if (!existsSync(candidate)) {
+                    if (!fileSystem.existsSync(candidate)) {
                         return undefined;
                     }
 
@@ -586,7 +585,7 @@ export class Tool implements ITool {
     protected writeDOTFile(g: Grammar, rulOrName: Rule | string, dot: string): void {
         const name = rulOrName instanceof Rule ? rulOrName.g.name + "." + rulOrName.name : rulOrName;
         const fileName = this.getOutputFile(g, name + ".dot");
-        writeFileSync(fileName, dot);
+        fileSystem.writeFileSync(fileName, dot);
     }
 
     static {

@@ -5,8 +5,6 @@
 
 /* eslint-disable jsdoc/require-param, jsdoc/require-returns */
 
-import { basename } from "node:path";
-
 import {
     ATN, ATNDeserializer, ATNSerializer, CharStream, DFA, IntervalSet, LexerInterpreter, ParserInterpreter,
     SemanticContext, Token, TokenStream, Vocabulary
@@ -30,6 +28,7 @@ import { TokenVocabParser } from "../parse/TokenVocabParser.js";
 import { GrammarType } from "../support/GrammarType.js";
 import type { IGrammar, ITool } from "../types.js";
 
+import { basename } from "../support/fs-helpers.js";
 import type { CommonTree } from "../tree/CommonTree.js";
 import type { CommonTreeNodeStream } from "../tree/CommonTreeNodeStream.js";
 import { ANTLRMessage } from "./ANTLRMessage.js";

@@ -8,11 +8,10 @@
 import type { RecognitionException } from "antlr4ng";
 import { ErrorBuffer, IST, STGroup, STGroupString } from "stringtemplate4ts";
 
-import { basename } from "path";
-
 import { ANTLRMessage } from "./ANTLRMessage.js";
 import { IssueCode, IssueSeverity, severityMap } from "./Issues.js";
 import { ToolListener } from "./ToolListener.js";
+import { basename } from "../support/fs-helpers.js";
 
 // The supported ANTLR message formats. Using ST here is overkill and will later be replaced with a simpler solution.
 const messageFormats = new Map<string, string>([

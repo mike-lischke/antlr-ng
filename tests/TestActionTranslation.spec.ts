@@ -66,8 +66,8 @@ describe("TestActionTranslation", () => {
 
             g.atn = factory.createATN();
 
-            const anal = new AnalysisPipeline(g);
-            anal.process();
+            const pipeline = new AnalysisPipeline(g);
+            pipeline.process();
 
             const gen = new CodeGenerator(g);
             const outputFileST = gen.generateParser(g.tool.toolParameters, false);
