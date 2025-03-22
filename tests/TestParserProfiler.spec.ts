@@ -208,7 +208,7 @@ describe("TestParserProfiler", () => {
             lg);
 
         const parameters: IToolParameters = {
-            grammarFiles: ["L.g4"],
+            grammarFiles: [],
             outputDirectory: ".",
         };
         g.tool.process(g, parameters, false);
@@ -247,7 +247,7 @@ describe("TestParserProfiler", () => {
             lg);
 
         const parameters: IToolParameters = {
-            grammarFiles: ["L.g4"],
+            grammarFiles: [],
             outputDirectory: ".",
         };
         g.tool.process(g, parameters, false);

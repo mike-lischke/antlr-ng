@@ -9,8 +9,14 @@ import {
     BasicBlockStartState, CharStream, CommonTokenStream, DecisionState, PredictionMode, Trees
 } from "antlr4ng";
 
+import type { IToolParameters } from "../src/tool-parameters.js";
 import { GrammarParserInterpreter } from "../src/tool/GrammarParserInterpreter.js";
 import { Grammar, LexerGrammar } from "../src/tool/index.js";
+
+const dummyParameters: IToolParameters = {
+    grammarFiles: [],
+    outputDirectory: "",
+};
 
 describe("TestAmbigParseTrees", () => {
     const testInterpAtSpecificAlt = (lg: LexerGrammar, g: Grammar, startRule: string, startAlt: number, input: string,
@@ -73,7 +79,7 @@ describe("TestAmbigParseTrees", () => {
             "A : 'a' ;\n" +
             "B : 'b' ;\n" +
             "C : 'c' ;\n");
-        lg.tool.process(lg, false);
+        lg.tool.process(lg, dummyParameters, false);
 
         const g = new Grammar(
             "parser grammar T;\n" +
@@ -82,7 +88,7 @@ describe("TestAmbigParseTrees", () => {
             "  ;" +
             "x : B ; \n",
             lg);
-        g.tool.process(g, false);
+        g.tool.process(g, dummyParameters, false);
 
         testInterpAtSpecificAlt(lg, g, "s", 1, "abc", "(s:1 a (x:1 b) c)");
         testInterpAtSpecificAlt(lg, g, "s", 2, "abc", "(s:2 a b c)");
@@ -94,7 +100,7 @@ describe("TestAmbigParseTrees", () => {
             "A : 'a' ;\n" +
             "B : 'b' ;\n" +
             "C : 'c' ;\n");
-        lg.tool.process(lg, false);
+        lg.tool.process(lg, dummyParameters, false);
 
         const g = new Grammar(
             "parser grammar T;\n" +
@@ -103,7 +109,7 @@ describe("TestAmbigParseTrees", () => {
             "  ;" +
             "x : B ; \n",
             lg);
-        g.tool.process(g, false);
+        g.tool.process(g, dummyParameters, false);
 
         const startRule = "s";
         const input = "abc";
@@ -124,7 +130,7 @@ describe("TestAmbigParseTrees", () => {
             "A : 'a' ;\n" +
             "B : 'b' ;\n" +
             "C : 'c' ;\n");
-        lg.tool.process(lg, false);
+        lg.tool.process(lg, dummyParameters, false);
 
         const g = new Grammar(
             "parser grammar T;\n" +
@@ -135,7 +141,7 @@ describe("TestAmbigParseTrees", () => {
             "  ;" +
             "z : B ; \n",
             lg);
-        g.tool.process(g, false);
+        g.tool.process(g, dummyParameters, false);
 
         const startRule = "s";
         const input = "abc";
@@ -156,7 +162,7 @@ describe("TestAmbigParseTrees", () => {
             "SELF : 'self' ;\n" +
             "ID : [a-z]+ ;\n" +
             "DOT : '.' ;\n");
-        lg.tool.process(lg, false);
+        lg.tool.process(lg, dummyParameters, false);
 
         const g = new Grammar(
             "parser grammar T;\n" +
@@ -165,7 +171,7 @@ describe("TestAmbigParseTrees", () => {
             "  | SELF DOT ID" +
             "  ;",
             lg);
-        g.tool.process(g, false);
+        g.tool.process(g, dummyParameters, false);
 
         const startRule = "e";
         const input = "self.x";
@@ -186,7 +192,7 @@ describe("TestAmbigParseTrees", () => {
             "SELF : 'self' ;\n" +
             "ID : [a-z]+ ;\n" +
             "DOT : '.' ;\n");
-        lg.tool.process(lg, false);
+        lg.tool.process(lg, dummyParameters, false);
 
         const g = new Grammar(
             "parser grammar T;\n" +
@@ -196,7 +202,7 @@ describe("TestAmbigParseTrees", () => {
             "  | SELF DOT ID" +
             "  ;",
             lg);
-        g.tool.process(g, false);
+        g.tool.process(g, dummyParameters, false);
 
         const startRule = "s";
         const input = "self.x";
@@ -217,7 +223,7 @@ describe("TestAmbigParseTrees", () => {
             "SELF : 'self' ;\n" +
             "ID : [a-z]+ ;\n" +
             "DOT : '.' ;\n");
-        lg.tool.process(lg, false);
+        lg.tool.process(lg, dummyParameters, false);
 
         const g = new Grammar(
             "parser grammar T;\n" +
@@ -227,7 +233,7 @@ describe("TestAmbigParseTrees", () => {
             "  | SELF DOT ID" +
             "  ;",
             lg);
-        g.tool.process(g, false);
+        g.tool.process(g, dummyParameters, false);
 
         const startRule = "s";
         const input = "self.x";
@@ -248,7 +254,7 @@ describe("TestAmbigParseTrees", () => {
             "SELF : 'self' ;\n" +
             "ID : [a-z]+ ;\n" +
             "DOT : '.' ;\n");
-        lg.tool.process(lg, false);
+        lg.tool.process(lg, dummyParameters, false);
 
         const g = new Grammar(
             "parser grammar T;\n" +
@@ -257,7 +263,7 @@ describe("TestAmbigParseTrees", () => {
             "  | SELF DOT ID" +
             "  ;",
             lg);
-        g.tool.process(g, false);
+        g.tool.process(g, dummyParameters, false);
 
         const startRule = "e";
         const input = "self.x";

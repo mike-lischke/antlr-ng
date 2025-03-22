@@ -51,7 +51,7 @@ export abstract class Choice extends RuleElement {
     public getAltLookaheadAsStringLists(altLookSets: IntervalSet[]): ITokenInfo[][] {
         const altLook: ITokenInfo[][] = [];
         const target = this.factory!.getGenerator()!.target;
-        const grammar = this.factory!.g!;
+        const grammar = this.factory!.g;
 
         for (const s of altLookSets) {
             const list = s.toArray();

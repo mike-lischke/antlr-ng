@@ -14,6 +14,7 @@ import { join } from "node:path";
 import { ToolTestUtils } from "./ToolTestUtils.js";
 import { Grammar } from "../src/tool/index.js";
 import { CodeGenerator } from "../src/codegen/CodeGenerator.js";
+import type { IToolParameters } from "../src/tool-parameters.js";
 
 /**
  * Test parser execution.
@@ -233,6 +234,10 @@ describe.sequential("TestParserExec", () => {
     });
 
     it("Fail Element Option", () => {
+        const parameters: IToolParameters = {
+            grammarFiles: ["T.g4"],
+            outputDirectory: ".",
+        };
         const grammarText = `grammar T;
             s : a ;
             a : a ID {false}?<fail='custom message'>
@@ -241,7 +246,7 @@ describe.sequential("TestParserExec", () => {
             ID : 'a'..'z'+ ;
             WS : (' '|'\\n') -> skip ;`;
         const g = new Grammar(grammarText);
-        g.tool.process(g, false);
+        g.tool.process(g, parameters, false);
 
         const gen = new CodeGenerator(g);
         const outputFileST = gen.generateParser(g.tool.toolParameters);
