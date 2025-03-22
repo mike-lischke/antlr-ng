@@ -6,7 +6,6 @@
 import type { ANTLRMessage } from "../../src/tool/ANTLRMessage.js";
 import { ToolListener } from "../../src/tool/ToolListener.js";
 import { ErrorManager } from "../../src/tool/ErrorManager.js";
-import type { ToolMessage } from "../../src/tool/ToolMessage.js";
 
 export class ErrorQueue extends ToolListener {
     public readonly infos: string[] = [];
@@ -33,7 +32,7 @@ export class ErrorQueue extends ToolListener {
         this.all.push(msg);
     }
 
-    public errorToolMessage(msg: ToolMessage): void {
+    public errorToolMessage(msg: ANTLRMessage): void {
         this.errors.push(msg);
         this.all.push(msg);
     }

@@ -10,6 +10,10 @@
    @typescript-eslint/no-unsafe-return
  */
 
+import * as nodeFs from "fs";
+import { fileURLToPath } from "node:url";
+import { resolve } from "node:path";
+
 import { program } from "commander";
 
 import {
@@ -17,10 +21,10 @@ import {
     PredictionMode, type ATNSimulator, type Recognizer
 } from "antlr4ng";
 
-import { readFile } from "fs/promises";
-import { resolve } from "path";
-
+import { memfs } from "memfs";
 import { parseBoolean } from "./cli-options.js";
+import { useFileSystem } from "../src/tool-parameters.js";
+import { copyFolderToMemFs, dirname } from "../src/support/fs-helpers.js";
 
 type Constructor<T extends Recognizer<ATNSimulator>> = abstract new (...args: unknown[]) => T;
 
@@ -70,6 +74,10 @@ testRigOptions.grammar = program.args[0];
 testRigOptions.startRuleName = program.args[1];
 testRigOptions.inputFiles = program.args.slice(2);
 
+// Prepare the virtual file system.
+const { fs } = memfs();
+useFileSystem(fs);
+
 /**
  * Run a lexer/parser combo, optionally printing tree string. Optionally taking input file.
  *
@@ -97,7 +105,7 @@ export class TestRig {
 
         const files = testRigOptions.inputFiles ?? [];
         for (const inputFile of files) {
-            const content = await readFile(resolve(inputFile), { encoding: "utf-8" });
+            const content = await nodeFs.promises.readFile(resolve(inputFile), { encoding: "utf-8" });
             const charStream = CharStream.fromString(content);
             if (files.length > 1) {
                 console.log(inputFile);
@@ -196,6 +204,10 @@ export class TestRig {
         }
     }
 }
+
+// Provide the templates in the virtual file system.
+fs.mkdirSync("/templates", { recursive: true });
+copyFolderToMemFs(fs, fileURLToPath(dirname(import.meta.url) + "/../templates"), "/templates", true);
 
 const testRig = new TestRig();
 await testRig.run();

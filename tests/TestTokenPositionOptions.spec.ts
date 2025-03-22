@@ -8,6 +8,7 @@ import { describe, expect, it } from "vitest";
 import { IntervalSet, type Token } from "antlr4ng";
 import { ANTLRv4Parser } from "../src/generated/ANTLRv4Parser.js";
 import { Grammar } from "../src/tool/index.js";
+import type { IToolParameters } from "../src/tool-parameters.js";
 
 describe("TestTokenPositionOptions", () => {
     it("testLeftRecursionRewrite", () => {
@@ -22,8 +23,13 @@ describe("TestTokenPositionOptions", () => {
             "  ;\n" +
             "ID : [a-z]+ ;\n"
         );
-        g.tool.toolParameters.define = { "language": "Java" };
-        g.tool.process(g, false);
+
+        const parameters: IToolParameters = {
+            grammarFiles: [],
+            outputDirectory: "",
+            define: { "language": "Java" },
+        };
+        g.tool.process(g, parameters, false);
 
         const expectedTree = "(COMBINED_GRAMMAR T (RULES (RULE s (BLOCK (ALT e ';'))) (RULE e (BLOCK (ALT (BLOCK " +
             "(ALT {} ('-' (ELEMENT_OPTIONS (= tokenIndex 43))) (e (ELEMENT_OPTIONS (= tokenIndex 45) (= p 2)))) " +
@@ -71,8 +77,13 @@ describe("TestTokenPositionOptions", () => {
             "  ;\n" +
             "ID : [a-z]+ ;\n"
         );
-        g.tool.toolParameters.define = { "language": "Java" };
-        g.tool.process(g, false);
+
+        const parameters: IToolParameters = {
+            grammarFiles: [],
+            outputDirectory: "",
+            define: { "language": "Java" },
+        };
+        g.tool.process(g, parameters, false);
 
         const expectedTree = "(COMBINED_GRAMMAR T (RULES (RULE s (BLOCK (ALT e ';'))) (RULE e (BLOCK (ALT (BLOCK " +
             "(ALT {} ('-' (ELEMENT_OPTIONS (= tokenIndex 47))) (e (ELEMENT_OPTIONS (= tokenIndex 49) (= p 2)))) " +
@@ -119,8 +130,13 @@ describe("TestTokenPositionOptions", () => {
             "  ;\n" +
             "ID : [a-z]+ ;\n"
         );
-        g.tool.toolParameters.define = { "language": "Java" };
-        g.tool.process(g, false);
+
+        const parameters: IToolParameters = {
+            grammarFiles: [],
+            outputDirectory: "",
+            define: { "language": "Java" },
+        };
+        g.tool.process(g, parameters, false);
 
         const expectedTree = "(COMBINED_GRAMMAR T (RULES (RULE s (BLOCK (ALT e ';'))) (RULE e (BLOCK (ALT (BLOCK " +
             "(ALT {} ('-' (ELEMENT_OPTIONS (= tokenIndex 49))) (e (ELEMENT_OPTIONS (= tokenIndex 51) (= p 2)))) " +

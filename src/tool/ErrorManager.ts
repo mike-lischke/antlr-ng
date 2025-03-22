@@ -37,8 +37,8 @@ wantsSingleLineMessage() ::= "true"
 export class ErrorManager {
     private static readonly loadedFormats = new Map<string, STGroupString>();
 
-    public errors: number;
-    public warnings: number;
+    public errors = 0;
+    public warnings = 0;
 
     /** All errors that have been generated */
     public errorTypes = new Set<IssueCode>();
@@ -51,17 +51,13 @@ export class ErrorManager {
     private initSTListener = new ErrorBuffer();
     private listeners = new Array<ToolListener>();
 
+    private longMessages = false;
+    private warningsAreErrors = false;
+
     /**
      * Track separately so if someone adds a listener, it's the only one instead of it and the default stderr listener.
      */
     private defaultListener = new ToolListener(this);
-
-    public constructor(msgFormat?: string, private longMessages?: boolean, private warningsAreErrors?: boolean) {
-        this.errors = 0;
-        this.warnings = 0;
-
-        this.loadFormat(msgFormat ?? "antlr");
-    }
 
     public static fatalInternalError(error: string, e: Error): void {
         ErrorManager.internalError(error, e);
@@ -92,6 +88,15 @@ export class ErrorManager {
         return entry;
     }
 
+    public configure(msgFormat?: string, longMessages?: boolean, warningsAreErrors?: boolean) {
+        this.errors = 0;
+        this.warnings = 0;
+        this.longMessages = longMessages ?? false;
+        this.warningsAreErrors = warningsAreErrors ?? false;
+
+        this.loadFormat(msgFormat ?? "antlr");
+    }
+
     public formatWantsSingleLineMessage(): boolean {
         const result = this.format.getInstanceOf("wantsSingleLineMessage")?.render();
 
@@ -99,8 +104,7 @@ export class ErrorManager {
     }
 
     public getMessageTemplate(msg: ANTLRMessage): IST | null {
-        const longMessages = this.longMessages;
-        const messageST = msg.getMessageTemplate(longMessages ?? false);
+        const messageST = msg.getMessageTemplate(this.longMessages);
         const locationST = this.getLocationFormat();
         const reportST = this.getReportFormat(msg.issue.severity);
         const messageFormatST = this.getMessageFormat();

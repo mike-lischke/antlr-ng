@@ -13,13 +13,20 @@ import { ATNSerializer } from "antlr4ng";
 import { CodeGenerator } from "../../src/codegen/CodeGenerator.js";
 import { DOTGenerator } from "../../src/tool/DOTGenerator.js";
 import { Grammar, LexerGrammar } from "../../src/tool/index.js";
+import type { IToolParameters } from "../../src/tool-parameters.js";
+
+// Dummy parameters for the tests.
+const parameters: IToolParameters = {
+    grammarFiles: [],
+    outputDirectory: "",
+};
 
 describe("General", () => {
     it("Bug #33 Escaping issues with backslash in .dot file comparison", async () => {
         const sourcePath = fileURLToPath(new URL("data/abbLexer.g4", import.meta.url));
         const lexerGrammarText = await readFile(sourcePath, "utf8");
         const lexerGrammar = new LexerGrammar(lexerGrammarText);
-        lexerGrammar.tool.process(lexerGrammar, false);
+        lexerGrammar.tool.process(lexerGrammar, parameters, false);
 
         const rule = lexerGrammar.getRule("EscapeSequence")!;
         const startState = lexerGrammar.atn!.ruleToStartState[rule.index]!;
@@ -34,7 +41,7 @@ describe("General", () => {
         const sourcePath = fileURLToPath(new URL("data/GoLexer.g4", import.meta.url));
         const lexerGrammarText = await readFile(sourcePath, "utf8");
         const lexerGrammar = new LexerGrammar(lexerGrammarText);
-        lexerGrammar.tool.process(lexerGrammar, false);
+        lexerGrammar.tool.process(lexerGrammar, parameters, false);
 
         const rule = lexerGrammar.getRule("EOS")!;
         const startState = lexerGrammar.atn!.ruleToStartState[rule.index]!;
@@ -58,7 +65,7 @@ describe("General", () => {
             WS : (' '|'\\n') -> skip;`;
 
         const grammar = new Grammar(grammarText);
-        grammar.tool.process(grammar, false);
+        grammar.tool.process(grammar, parameters, false);
 
         const rule = grammar.getRule("e")!;
         const startState = grammar.atn!.ruleToStartState[rule.index]!;
@@ -78,7 +85,7 @@ describe("General", () => {
         `;
 
         const grammar = new Grammar(grammarText);
-        grammar.tool.process(grammar, false);
+        grammar.tool.process(grammar, parameters, false);
 
         const atn = grammar.atn!;
         const expectedSerializedATN: number[] = [
@@ -126,7 +133,7 @@ describe("General", () => {
                 ID : 'a'..'z'+ ;
                 WS : (' '|'\\n') -> skip ;`;
         const g = new Grammar(grammarText);
-        g.tool.process(g, false);
+        g.tool.process(g, parameters, false);
 
         const gen = new CodeGenerator(g);
         const outputFileST = gen.generateParser(g.tool.toolParameters);

@@ -11,40 +11,7 @@ import { ParserRuleContext, ParseTree, TerminalNode, XPath, type Parser } from "
 
 import { describe, expect, it } from "vitest";
 
-import { ToolTestUtils } from "./ToolTestUtils.js";
-
-export namespace TestXPath {
-    export const grammar =
-        "grammar Expr;\n" +
-        "prog:   func+ ;\n" +
-        "func:  'def' ID '(' arg (',' arg)* ')' body ;\n" +
-        "body:  '{' stat+ '}' ;\n" +
-        "arg :  ID ;\n" +
-        "stat:   expr ';'                 # printExpr\n" +
-        "    |   ID '=' expr ';'          # assign\n" +
-        "    |   'return' expr ';'        # ret\n" +
-        "    |   ';'                      # blank\n" +
-        "    ;\n" +
-        "expr:   expr ('*'|'/') expr      # MulDiv\n" +
-        "    |   expr ('+'|'-') expr      # AddSub\n" +
-        "    |   primary                  # prim\n" +
-        "    ;\n" +
-        "primary" +
-        "    :   INT                      # int\n" +
-        "    |   ID                       # id\n" +
-        "    |   '(' expr ')'             # parens\n" +
-        "	 ;" +
-        "\n" +
-        "MUL :   '*' ; // assigns token name to '*' used above in grammar\n" +
-        "DIV :   '/' ;\n" +
-        "ADD :   '+' ;\n" +
-        "SUB :   '-' ;\n" +
-        "RETURN : 'return' ;\n" +
-        "ID  :   [a-zA-Z]+ ;      // match identifiers\n" +
-        "INT :   [0-9]+ ;         // match integers\n" +
-        "NEWLINE:'\\r'? '\\n' -> skip;     // return newlines to parser (is end-statement signal)\n" +
-        "WS  :   [ \\t]+ -> skip ; // toss out whitespace\n";
-}
+import { ToolTestUtils, xpathTestGrammar } from "./ToolTestUtils.js";
 
 describe("TestXPath", () => {
     const sampleProgram =
@@ -130,7 +97,7 @@ describe("TestXPath", () => {
 
         const tempDir = mkdtempSync(join(tmpdir(), "AntlrXPathTest"));
         try {
-            const [parser, parseTree] = await parse("Expr.g4", TestXPath.grammar, sampleProgram, "prog", "ExprParser",
+            const [parser, parseTree] = await parse("Expr.g4", xpathTestGrammar, sampleProgram, "prog", "ExprParser",
                 "ExprLexer", tempDir);
 
             for (let i = 0; i < xpath.length; i++) {
@@ -162,7 +129,7 @@ describe("TestXPath", () => {
 
         const tempDir = mkdtempSync(join(tmpdir(), "AntlrXPathTest"));
         try {
-            await testError("Expr.g4", TestXPath.grammar, sampleProgram, path, expected, "prog", "ExprParser",
+            await testError("Expr.g4", xpathTestGrammar, sampleProgram, path, expected, "prog", "ExprParser",
                 "ExprLexer", tempDir);
         } finally {
             rmSync(tempDir, { recursive: true });
@@ -175,7 +142,7 @@ describe("TestXPath", () => {
 
         const tempDir = mkdtempSync(join(tmpdir(), "AntlrXPathTest"));
         try {
-            await testError("Expr.g4", TestXPath.grammar, sampleProgram, path, expected, "prog", "ExprParser",
+            await testError("Expr.g4", xpathTestGrammar, sampleProgram, path, expected, "prog", "ExprParser",
                 "ExprLexer", tempDir);
         } finally {
             rmSync(tempDir, { recursive: true });
@@ -188,7 +155,7 @@ describe("TestXPath", () => {
 
         const tempDir = mkdtempSync(join(tmpdir(), "AntlrXPathTest"));
         try {
-            await testError("Expr.g4", TestXPath.grammar, sampleProgram, path, expected, "prog", "ExprParser",
+            await testError("Expr.g4", xpathTestGrammar, sampleProgram, path, expected, "prog", "ExprParser",
                 "ExprLexer", tempDir);
         } finally {
             rmSync(tempDir, { recursive: true });
@@ -201,7 +168,7 @@ describe("TestXPath", () => {
 
         const tempDir = mkdtempSync(join(tmpdir(), "AntlrXPathTest"));
         try {
-            await testError("Expr.g4", TestXPath.grammar, sampleProgram, path, expected, "prog", "ExprParser",
+            await testError("Expr.g4", xpathTestGrammar, sampleProgram, path, expected, "prog", "ExprParser",
                 "ExprLexer", tempDir);
         } finally {
             rmSync(tempDir, { recursive: true });
@@ -214,7 +181,7 @@ describe("TestXPath", () => {
 
         const tempDir = mkdtempSync(join(tmpdir(), "AntlrXPathTest"));
         try {
-            await testError("Expr.g4", TestXPath.grammar, sampleProgram, path, expected, "prog", "ExprParser",
+            await testError("Expr.g4", xpathTestGrammar, sampleProgram, path, expected, "prog", "ExprParser",
                 "ExprLexer", tempDir);
         } finally {
             rmSync(tempDir, { recursive: true });
@@ -227,7 +194,7 @@ describe("TestXPath", () => {
 
         const tempDir = mkdtempSync(join(tmpdir(), "AntlrXPathTest"));
         try {
-            await testError("Expr.g4", TestXPath.grammar, sampleProgram, path, expected, "prog", "ExprParser",
+            await testError("Expr.g4", xpathTestGrammar, sampleProgram, path, expected, "prog", "ExprParser",
                 "ExprLexer", tempDir);
         } finally {
             rmSync(tempDir, { recursive: true });
