@@ -11,6 +11,7 @@ import { IssueCode } from "../src/tool/Issues.js";
 import { LexerGrammar } from "../src/tool/index.js";
 import { ToolTestUtils } from "./ToolTestUtils.js";
 import { convertArrayToString, convertMapToString } from "../src/support/helpers.js";
+import type { IToolParameters } from "../src/tool-parameters.js";
 
 describe("TestSymbolIssues", () => {
     const testDataA = [
@@ -145,7 +146,7 @@ describe("TestSymbolIssues", () => {
             "C : 'a' ;\n";
 
         const g = new LexerGrammar(grammar);
-        g.tool.process(g, false);
+        g.tool.process(g, {} as IToolParameters, false);
 
         const expectedTokenIDToTypeMap = "{EOF=-1, A=1, B=2, C=3}";
         const expectedStringLiteralToTypeMap = "{}";

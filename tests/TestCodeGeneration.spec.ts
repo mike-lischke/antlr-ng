@@ -13,6 +13,7 @@ import { LexerATNFactory } from "../src/automata/LexerATNFactory.js";
 import { ParserATNFactory } from "../src/automata/ParserATNFactory.js";
 import { CodeGenerator } from "../src/codegen/CodeGenerator.js";
 import { SemanticPipeline } from "../src/semantics/SemanticPipeline.js";
+import type { IToolParameters } from "../src/tool-parameters.js";
 import { Grammar, type LexerGrammar } from "../src/tool/index.js";
 
 describe("TestCodeGeneration", () => {
@@ -65,7 +66,7 @@ describe("TestCodeGeneration", () => {
 
     const getEvalInfoForString = (grammarString: string, pattern: string): string[] => {
         const g = new Grammar(grammarString);
-        g.tool.process(g, false);
+        g.tool.process(g, {} as IToolParameters, false);
 
         const evals: string[] = [];
         if (!g.ast.hasErrors) {

@@ -9,6 +9,7 @@ import { describe, expect, it } from "vitest";
 
 import { BlockStartState, DFA, Lexer, LexerATNSimulator, NoViableAltException, type ATNState } from "antlr4ng";
 
+import type { IToolParameters } from "../src/tool-parameters.js";
 import { Grammar, LexerGrammar } from "../src/tool/index.js";
 import { MockIntTokenStream } from "./MockIntTokenStream.js";
 import { ParserInterpreterForTesting } from "./ParserInterpreterForTesting.js";
@@ -43,13 +44,13 @@ describe("TestATNInterpreter", () => {
             "A : 'a' ;\n" +
             "B : 'b' ;\n" +
             "C : 'c' ;\n");
-        lg.tool.process(lg, false);
+        lg.tool.process(lg, {} as IToolParameters, false);
 
         const g = new Grammar(
             "parser grammar T;\n" +
             "a : A B ;");
 
-        g.tool.process(g, false);
+        g.tool.process(g, {} as IToolParameters, false);
 
         checkMatchedAlt(lg, g, "ab", 1);
     });
@@ -60,14 +61,14 @@ describe("TestATNInterpreter", () => {
             "A : 'a' ;\n" +
             "B : 'b' ;\n" +
             "C : 'c' ;\n");
-        lg.tool.process(lg, false);
+        lg.tool.process(lg, {} as IToolParameters, false);
 
         const g = new Grammar(
             "parser grammar T;\n" +
             "tokens {A,B,C}\n" +
             "a : ~A ;");
 
-        g.tool.process(g, false);
+        g.tool.process(g, {} as IToolParameters, false);
 
         checkMatchedAlt(lg, g, "b", 1);
     });
@@ -78,13 +79,13 @@ describe("TestATNInterpreter", () => {
             "A : 'a' ;\n" +
             "B : 'b' ;\n" +
             "C : 'c' ;\n");
-        lg.tool.process(lg, false);
+        lg.tool.process(lg, {} as IToolParameters, false);
 
         const g = new Grammar(
             "parser grammar T;\n" +
             "a : A | A B ;");
 
-        g.tool.process(g, false);
+        g.tool.process(g, {} as IToolParameters, false);
 
         //checkMatchedAlt(lg, g, "a", 1);
         checkMatchedAlt(lg, g, "ab", 2);
@@ -97,13 +98,13 @@ describe("TestATNInterpreter", () => {
             "A : 'a' ;\n" +
             "B : 'b' ;\n" +
             "C : 'c' ;\n");
-        lg.tool.process(lg, false);
+        lg.tool.process(lg, {} as IToolParameters, false);
 
         const g = new Grammar(
             "parser grammar T;\n" +
             "a : A | A B ;");
 
-        g.tool.process(g, false);
+        g.tool.process(g, {} as IToolParameters, false);
 
         checkMatchedAlt(lg, g, "a", 1);
         checkMatchedAlt(lg, g, "ab", 2);
@@ -118,13 +119,13 @@ describe("TestATNInterpreter", () => {
             "A : 'a' ;\n" +
             "B : 'b' ;\n" +
             "C : 'c' ;\n");
-        lg.tool.process(lg, false);
+        lg.tool.process(lg, {} as IToolParameters, false);
 
         const g = new Grammar(
             "parser grammar T;\n" +
             "a : (A | A B) EOF;");
 
-        g.tool.process(g, false);
+        g.tool.process(g, {} as IToolParameters, false);
 
         checkMatchedAlt(lg, g, "a", 1);
         checkMatchedAlt(lg, g, "ab", 2);
@@ -150,12 +151,12 @@ describe("TestATNInterpreter", () => {
             "B : 'b' ;\n" +
             "C : 'c' ;\n" +
             "D : 'd' ;\n");
-        lg.tool.process(lg, false);
+        lg.tool.process(lg, {} as IToolParameters, false);
 
         const g = new Grammar(
             "parser grammar T;\n" +
             "a : A | A B | A B C ;");
-        g.tool.process(g, false);
+        g.tool.process(g, {} as IToolParameters, false);
 
         checkMatchedAlt(lg, g, "a", 1);
         checkMatchedAlt(lg, g, "ab", 2);
@@ -173,12 +174,12 @@ describe("TestATNInterpreter", () => {
             "B : 'b' ;\n" +
             "C : 'c' ;\n" +
             "D : 'd' ;\n");
-        lg.tool.process(lg, false);
+        lg.tool.process(lg, {} as IToolParameters, false);
 
         const g = new Grammar(
             "parser grammar T;\n" +
             "a : (A | A B | A B C) EOF;");
-        g.tool.process(g, false);
+        g.tool.process(g, {} as IToolParameters, false);
 
         checkMatchedAlt(lg, g, "a", 1);
         checkMatchedAlt(lg, g, "ab", 2);
@@ -205,12 +206,12 @@ describe("TestATNInterpreter", () => {
             "B : 'b' ;\n" +
             "C : 'c' ;\n" +
             "D : 'd' ;\n");
-        lg.tool.process(lg, false);
+        lg.tool.process(lg, {} as IToolParameters, false);
 
         const g = new Grammar(
             "parser grammar T;\n" +
             "a : A B | A | A B C ;");
-        g.tool.process(g, false);
+        g.tool.process(g, {} as IToolParameters, false);
 
         checkMatchedAlt(lg, g, "a", 2);
         checkMatchedAlt(lg, g, "ab", 1);
@@ -228,12 +229,12 @@ describe("TestATNInterpreter", () => {
             "B : 'b' ;\n" +
             "C : 'c' ;\n" +
             "D : 'd' ;\n");
-        lg.tool.process(lg, false);
+        lg.tool.process(lg, {} as IToolParameters, false);
 
         const g = new Grammar(
             "parser grammar T;\n" +
             "a : (A B | A | A B C) EOF;");
-        g.tool.process(g, false);
+        g.tool.process(g, {} as IToolParameters, false);
 
         checkMatchedAlt(lg, g, "a", 2);
         checkMatchedAlt(lg, g, "ab", 1);
@@ -260,12 +261,12 @@ describe("TestATNInterpreter", () => {
             "B : 'b' ;\n" +
             "C : 'c' ;\n" +
             "D : 'd' ;\n");
-        lg.tool.process(lg, false);
+        lg.tool.process(lg, {} as IToolParameters, false);
 
         const g = new Grammar(
             "parser grammar T;\n" +
             "a : A B | A B ;"); // first alt
-        g.tool.process(g, false);
+        g.tool.process(g, {} as IToolParameters, false);
 
         checkMatchedAlt(lg, g, "ab", 1);
         checkMatchedAlt(lg, g, "abc", 1);
@@ -278,12 +279,12 @@ describe("TestATNInterpreter", () => {
             "B : 'b' ;\n" +
             "C : 'c' ;\n" +
             "D : 'd' ;\n");
-        lg.tool.process(lg, false);
+        lg.tool.process(lg, {} as IToolParameters, false);
 
         const g = new Grammar(
             "parser grammar T;\n" +
             "a : (A B | A B) C ;"); // first alt
-        g.tool.process(g, false);
+        g.tool.process(g, {} as IToolParameters, false);
 
         checkMatchedAlt(lg, g, "abc", 1);
         checkMatchedAlt(lg, g, "abcd", 1);
@@ -296,12 +297,12 @@ describe("TestATNInterpreter", () => {
             "B : 'b' ;\n" +
             "C : 'c' ;\n" +
             "D : 'd' ;\n");
-        lg.tool.process(lg, false);
+        lg.tool.process(lg, {} as IToolParameters, false);
 
         const g = new Grammar(
             "parser grammar T;\n" +
             "a : (A B | A B | C) D ;");
-        g.tool.process(g, false);
+        g.tool.process(g, {} as IToolParameters, false);
 
         checkMatchedAlt(lg, g, "abd", 1);
         checkMatchedAlt(lg, g, "abdc", 1);
@@ -315,12 +316,12 @@ describe("TestATNInterpreter", () => {
             "B : 'b' ;\n" +
             "C : 'c' ;\n" +
             "D : 'd' ;\n");
-        lg.tool.process(lg, false);
+        lg.tool.process(lg, {} as IToolParameters, false);
 
         const g = new Grammar(
             "parser grammar T;\n" +
             "a : A B | A B | A B C ;");
-        g.tool.process(g, false);
+        g.tool.process(g, {} as IToolParameters, false);
 
         checkMatchedAlt(lg, g, "ab", 1);
         checkMatchedAlt(lg, g, "abc", 3);
@@ -336,12 +337,12 @@ describe("TestATNInterpreter", () => {
             "B : 'b' ;\n" +
             "C : 'c' ;\n" +
             "D : 'd' ;\n");
-        lg.tool.process(lg, false);
+        lg.tool.process(lg, {} as IToolParameters, false);
 
         const g = new Grammar(
             "parser grammar T;\n" +
             "a : (A B | A B | A B C) EOF;");
-        g.tool.process(g, false);
+        g.tool.process(g, {} as IToolParameters, false);
 
         checkMatchedAlt(lg, g, "ab", 1);
         checkMatchedAlt(lg, g, "abc", 3);
@@ -367,12 +368,12 @@ describe("TestATNInterpreter", () => {
             "B : 'b' ;\n" +
             "C : 'c' ;\n" +
             "D : 'd' ;\n");
-        lg.tool.process(lg, false);
+        lg.tool.process(lg, {} as IToolParameters, false);
 
         const g = new Grammar(
             "parser grammar T;\n" +
             "a : A+ B ;");
-        g.tool.process(g, false);
+        g.tool.process(g, {} as IToolParameters, false);
 
         checkMatchedAlt(lg, g, "ab", 1);
         checkMatchedAlt(lg, g, "aab", 1);
@@ -386,12 +387,12 @@ describe("TestATNInterpreter", () => {
             "A : 'a' ;\n" +
             "B : 'b' ;\n" +
             "C : 'c' ;\n");
-        lg.tool.process(lg, false);
+        lg.tool.process(lg, {} as IToolParameters, false);
 
         const g = new Grammar(
             "parser grammar T;\n" +
             "a : A B | A C ;");
-        g.tool.process(g, false);
+        g.tool.process(g, {} as IToolParameters, false);
 
         checkMatchedAlt(lg, g, "ab", 1);
         checkMatchedAlt(lg, g, "ac", 2);
@@ -403,12 +404,12 @@ describe("TestATNInterpreter", () => {
             "A : 'a' ;\n" +
             "B : 'b' ;\n" +
             "C : 'c' ;\n");
-        lg.tool.process(lg, false);
+        lg.tool.process(lg, {} as IToolParameters, false);
 
         const g = new Grammar(
             "parser grammar T;\n" +
             "a : A+ B | A+ C ;");
-        g.tool.process(g, false);
+        g.tool.process(g, {} as IToolParameters, false);
 
         checkMatchedAlt(lg, g, "aac", 2);
     });
@@ -423,7 +424,7 @@ describe("TestATNInterpreter", () => {
             "RP : ')' ;\n" +
             "INT : '0'..'9'+ ;\n"
         );
-        lg.tool.process(lg, false);
+        lg.tool.process(lg, {} as IToolParameters, false);
 
         const g = new Grammar(
             "parser grammar T;\n" +
@@ -432,7 +433,7 @@ describe("TestATNInterpreter", () => {
             "e : LP e RP\n" +
             "  | INT\n" +
             "  ;");
-        g.tool.process(g, false);
+        g.tool.process(g, {} as IToolParameters, false);
 
         checkMatchedAlt(lg, g, "34b", 1);
         checkMatchedAlt(lg, g, "34c", 2);

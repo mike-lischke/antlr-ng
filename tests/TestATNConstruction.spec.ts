@@ -10,16 +10,17 @@ import { ATNState } from "antlr4ng";
 import { ATNPrinter } from "../src/automata/ATNPrinter.js";
 import { LexerATNFactory } from "../src/automata/LexerATNFactory.js";
 import { ANTLRv4Parser } from "../src/generated/ANTLRv4Parser.js";
+import { convertMapToString } from "../src/support/helpers.js";
+import type { IToolParameters } from "../src/tool-parameters.js";
 import { LexerGrammar } from "../src/tool/LexerGrammar.js";
 import type { GrammarAST } from "../src/tool/ast/GrammarAST.js";
 import type { RuleAST } from "../src/tool/ast/RuleAST.js";
 import { Grammar, Tool } from "../src/tool/index.js";
 import { ErrorQueue } from "./support/ErrorQueue.js";
-import { convertMapToString } from "../src/support/helpers.js";
 
 describe("TestATNConstruction", () => {
     const checkRuleATN = (g: Grammar, ruleName: string, expecting: string): void => {
-        g.tool.process(g, false);
+        g.tool.process(g, {} as IToolParameters, false);
 
         const r = g.getRule(ruleName)!;
         const startState = g.getATN().ruleToStartState[r.index];
@@ -30,7 +31,7 @@ describe("TestATNConstruction", () => {
     };
 
     const checkTokensRule = (g: LexerGrammar, modeName: string, expecting: string): void => {
-        g.tool.process(g, false);
+        g.tool.process(g, {} as IToolParameters, false);
 
         if (!modeName) {
             modeName = "DEFAULT_MODE";
@@ -675,7 +676,7 @@ describe("TestATNConstruction", () => {
             "\t ID : 'a'..'z'+ ;\n" +
             "\t WS : (' '|'\\n') -> skip ;";
         const g = new Grammar(grammarString);
-        g.tool.process(g, false);
+        g.tool.process(g, {} as IToolParameters, false);
 
         const expecting =
             "RuleStart_e_2->s7\n" +

@@ -9,6 +9,7 @@ import { describe, expect, it } from "vitest";
 
 import { BufferedTokenStream, CharStream, Token, type TokenSource, type TokenStream } from "antlr4ng";
 
+import type { IToolParameters } from "../src/tool-parameters.js";
 import { LexerGrammar } from "../src/tool/index.js";
 
 describe("TestBufferedTokenStream", () => {
@@ -26,7 +27,7 @@ describe("TestBufferedTokenStream", () => {
             "PLUS : '+';\n" +
             "MULT : '*';\n" +
             "WS : ' '+;\n");
-        g.tool.process(g, false);
+        g.tool.process(g, {} as IToolParameters, false);
 
         // Tokens: 012345678901234567
         // Input:  x = 3 * 0 + 2 * 0;
@@ -50,7 +51,7 @@ describe("TestBufferedTokenStream", () => {
             "PLUS : '+';\n" +
             "MULT : '*';\n" +
             "WS : ' '+;\n");
-        g.tool.process(g, false);
+        g.tool.process(g, {} as IToolParameters, false);
 
         // Tokens: 012345678901234567
         // Input:  x = 3 * 0 + 2 * 0;
@@ -73,7 +74,7 @@ describe("TestBufferedTokenStream", () => {
             "PLUS : '+';\n" +
             "MULT : '*';\n" +
             "WS : ' '+;\n");
-        g.tool.process(g, false);
+        g.tool.process(g, {} as IToolParameters, false);
 
         // Tokens: 012345678901234567
         // Input:  x = 3 * 0 + 2 * 0;
@@ -105,7 +106,7 @@ describe("TestBufferedTokenStream", () => {
             "PLUS : '+';\n" +
             "MULT : '*';\n" +
             "WS : ' '+;\n");
-        g.tool.process(g, false);
+        g.tool.process(g, {} as IToolParameters, false);
 
         // Tokens: 012345678901234567
         // Input:  x = 3 * 0 + 2 * 0;
@@ -134,7 +135,7 @@ describe("TestBufferedTokenStream", () => {
             "PLUS : '+';\n" +
             "MULT : '*';\n" +
             "WS : ' '+;\n");
-        g.tool.process(g, false);
+        g.tool.process(g, {} as IToolParameters, false);
 
         // Tokens: 012345678901234567
         // Input:  x = 3 * 0 + 2 * 0;

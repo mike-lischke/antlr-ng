@@ -10,12 +10,13 @@ import { CharStream, CommonTokenStream } from "antlr4ng";
 import { Grammar } from "../src/tool/index.js";
 import { InterpreterTreeTextProvider } from "./InterpreterTreeTextProvider.js";
 import { ToolTestUtils } from "./ToolTestUtils.js";
+import type { IToolParameters } from "../src/tool-parameters.js";
 
 describe("TestUnicodeGrammar", () => {
 
     const parseTreeForGrammarWithInput = (grammarText: string, rootRule: string, inputText: string): string => {
         const grammar = new Grammar(grammarText);
-        grammar.tool.process(grammar, false);
+        grammar.tool.process(grammar, {} as IToolParameters, false);
 
         const lexEngine = grammar.createLexerInterpreter(CharStream.fromString(inputText));
         const tokens = new CommonTokenStream(lexEngine);

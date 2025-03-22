@@ -7,13 +7,14 @@ import { describe, expect, it } from "vitest";
 
 import { ATNDeserializer, ATNSerializer } from "antlr4ng";
 
+import type { IToolParameters } from "../src/tool-parameters.js";
 import { Grammar, LexerGrammar } from "../src/tool/index.js";
 import { ATNDescriber } from "./ATNDescriber.js";
 import { ToolTestUtils } from "./ToolTestUtils.js";
 
 describe("TestATNDeserialization", () => {
     const checkDeserializationIsStable = (g: Grammar): void => {
-        g.tool.process(g, false);
+        g.tool.process(g, {} as IToolParameters, false);
         const atn = ToolTestUtils.createATN(g, false);
         const serialized = ATNSerializer.getSerialized(atn);
         const atnData = new ATNDescriber(atn, g.getTokenNames()).decode(serialized);

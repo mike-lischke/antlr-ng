@@ -6,6 +6,7 @@
 import { describe, expect, it } from "vitest";
 
 import { ScopeParser } from "../src/parse/ScopeParser.js";
+import type { IToolParameters } from "../src/tool-parameters.js";
 import { IAttribute } from "../src/tool/IAttribute.js";
 import { Grammar } from "../src/tool/index.js";
 
@@ -68,7 +69,7 @@ describe("TestScopeParsing", () => {
 
     it.each(getAllTestDescriptors())("testArgs: %s", (parameter: IParameter): void => {
         const dummy = new Grammar("grammar T; a:'a';");
-        dummy.tool.process(dummy, false);
+        dummy.tool.process(dummy, {} as IToolParameters, false);
 
         const attributes = ScopeParser.parseTypedArgList(null, parameter.input, dummy).attributes;
         const out: string[] = [];
