@@ -6,11 +6,15 @@
  */
 
 import { Option, program } from "commander";
-import { readFile } from "fs/promises";
-import { createWriteStream } from "node:fs";
+import { memfs } from "memfs";
+import * as nodeFs from "node:fs";
 
 import { CharStream, CommonToken, CommonTokenStream, DecisionInfo, ParseInfo } from "antlr4ng";
 
+import { dirname } from "node:path";
+import { fileURLToPath } from "node:url";
+import { copyFolderToMemFs } from "../src/support/fs-helpers.js";
+import { useFileSystem, type IToolParameters } from "../src/tool-parameters.js";
 import { Tool } from "../src/Tool.js";
 import type { GrammarParserInterpreter } from "../src/tool/GrammarParserInterpreter.js";
 import { Grammar, LexerGrammar } from "../src/tool/index.js";
@@ -46,6 +50,10 @@ const interpreterOptions = program.opts<IInterpreterCliParameters>();
 interpreterOptions.startRuleName = program.args[0];
 interpreterOptions.inputFile = program.args[1];
 interpreterOptions.grammars = program.args.slice(2);
+
+// Prepare the virtual file system.
+const { fs } = memfs();
+useFileSystem(fs);
 
 /** Interpret a lexer/parser, optionally printing tree string and dumping profile info */
 export class Interpreter {
@@ -102,25 +110,40 @@ export class Interpreter {
         const tool = new Tool();
         const listener = new ToolListener(tool.errorManager);
 
+        const parameters: IToolParameters = {
+            grammarFiles: interpreterOptions.grammars,
+            outputDirectory: ".",
+            encoding: interpreterOptions.encoding,
+            generateListener: false,
+            generateVisitor: false,
+            atn: false,
+            longMessages: false,
+            msgFormat: "antlr",
+            warningsAreErrors: false,
+            forceAtn: false,
+            log: false,
+            exactOutputDir: false,
+        };
+
         if (interpreterOptions.grammars.length === 1) {
             // Must be a combined grammar.
-            const grammarContent = await readFile(interpreterOptions.grammars[0], "utf8");
+            const grammarContent = await fs.promises.readFile(interpreterOptions.grammars[0], "utf8") as string;
             g = Grammar.forFile(IgnoreTokenVocabGrammar, interpreterOptions.grammars[0], grammarContent,
                 undefined, listener);
-            g.tool.process(g, false);
+            g.tool.process(g, parameters, false);
         } else {
-            const lexerGrammarContent = await readFile(interpreterOptions.grammars[1], "utf8");
+            const lexerGrammarContent = await fs.promises.readFile(interpreterOptions.grammars[1], "utf8") as string;
             lg = new LexerGrammar(lexerGrammarContent);
             lg.tool.errorManager.addListener(listener);
-            lg.tool.process(lg, false);
+            lg.tool.process(lg, parameters, false);
 
-            const parserGrammarContent = await readFile(interpreterOptions.grammars[0], "utf8");
+            const parserGrammarContent = await fs.promises.readFile(interpreterOptions.grammars[0], "utf8") as string;
             g = Grammar.forFile(IgnoreTokenVocabGrammar, interpreterOptions.grammars[0],
                 parserGrammarContent, lg, listener);
-            g.tool.process(g, false);
+            g.tool.process(g, parameters, false);
         }
 
-        const input = await readFile(interpreterOptions.inputFile, interpreterOptions.encoding);
+        const input = await nodeFs.promises.readFile(interpreterOptions.inputFile, interpreterOptions.encoding);
         const charStream = CharStream.fromString(input);
         const lexEngine = lg ? lg.createLexerInterpreter(charStream) : g.createLexerInterpreter(charStream);
         const tokens = new CommonTokenStream(lexEngine);
@@ -183,7 +206,7 @@ export class Interpreter {
             }
         }
 
-        const writer = createWriteStream(interpreterOptions.profile!);
+        const writer = nodeFs.createWriteStream(interpreterOptions.profile!);
 
         for (let i = 0; i < Interpreter.profilerColumnNames.length; i++) {
             if (i > 0) {
@@ -205,6 +228,19 @@ export class Interpreter {
         }
         writer.close();
     }
+}
+
+// Provide the templates in the virtual file system.
+fs.mkdirSync("/templates", { recursive: true });
+copyFolderToMemFs(fs, fileURLToPath(dirname(import.meta.url) + "/../templates"), "/templates", true);
+
+// Copy all files to the memfs file system. We use the same path in both file systems. It doesn't matter for memfs.
+for (const grammarFile of interpreterOptions.grammars) {
+    const parentDir = dirname(grammarFile);
+
+    fs.mkdirSync(parentDir, { recursive: true });
+    copyFolderToMemFs(fs, parentDir, parentDir, false, /\.g4/);
+    copyFolderToMemFs(fs, parentDir, parentDir, false, /\.tokens/);
 }
 
 const interpreter = new Interpreter();

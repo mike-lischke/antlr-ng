@@ -3,14 +3,13 @@
  * Licensed under the BSD 3-clause License. See License.txt in the project root for license information.
  */
 
-import { existsSync, readFileSync } from "node:fs";
-import { dirname, join } from "node:path";
-
 import { Token } from "antlr4ng";
 
 import { Constants } from "../Constants.js";
+import { dirname } from "../support/fs-helpers.js";
 import { IssueCode } from "../tool/Issues.js";
 import type { IGrammar } from "../types.js";
+import { fileSystem } from "../tool-parameters.js";
 
 const linePattern = /\s*(?<tokenID>\w+|'(\\'|[^'])*')\s*=\s*(?<tokenTypeS>\d*)/;
 
@@ -85,26 +84,26 @@ export class TokenVocabParser {
         }
 
         try {
-            let name = join(this.libDirectory ?? ".", vocabName + Constants.VocabFileExtension);
-            if (existsSync(name)) {
-                return readFileSync(name, "utf8");
+            let name = (this.libDirectory ?? ".") + "/" + vocabName + Constants.VocabFileExtension;
+            if (fileSystem.existsSync(name)) {
+                return fileSystem.readFileSync(name, "utf8").toString();
             }
 
             // We did not find the vocab file in the lib directory, so we need to look for it in the output directory
             // which is where .tokens files are generated (in the base, not relative to the input location.)
             if (this.outputDirectory) {
-                name = join(this.outputDirectory, vocabName + Constants.VocabFileExtension);
-                if (existsSync(name)) {
-                    return readFileSync(name, "utf8");
+                name = this.outputDirectory + "/" + vocabName + Constants.VocabFileExtension;
+                if (fileSystem.existsSync(name)) {
+                    return fileSystem.readFileSync(name, "utf8").toString();
                 }
             }
 
             // Still not found? Use the grammar's soruce folder then.
             name = dirname(this.g.fileName);
             if (name) {
-                name = join(name, vocabName + Constants.VocabFileExtension);
-                if (existsSync(name)) {
-                    return readFileSync(name, "utf8");
+                name = name + "/" + vocabName + Constants.VocabFileExtension;
+                if (fileSystem.existsSync(name)) {
+                    return fileSystem.readFileSync(name, "utf8").toString();
                 }
             }
 

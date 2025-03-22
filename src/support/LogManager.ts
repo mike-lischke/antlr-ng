@@ -3,8 +3,8 @@
  * Licensed under the BSD 3-clause License. See License.txt in the project root for license information.
  */
 
-import { writeFileSync } from "node:fs";
-import { basename, join } from "node:path";
+import { fileSystem } from "../tool-parameters.js";
+import { basename } from "./fs-helpers.js";
 
 interface ILogEntry {
     component?: string;
@@ -39,10 +39,10 @@ export class LogManager {
 
     public save(filename?: string): string {
         if (!filename) {
-            filename = join(".", `antlrng-${Date.now()}.log`);
+            filename = `./antlrng-${Date.now()}.log`;
         }
 
-        writeFileSync(filename, this.toString());
+        fileSystem.writeFileSync(filename, this.toString());
 
         return filename;
     }

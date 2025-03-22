@@ -778,8 +778,7 @@ describe("TestToolSyntaxErrors", () => {
     });
 
     /**
-     * This is a regression test for antlr/antlr4#649 "unknown target causes
-     * null ptr exception.".
+     * This is a regression test for antlr/antlr4#649 "unknown target causes null ptr exception.".
      * https://github.com/antlr/antlr4/issues/649
      * Stops before processing the lexer
      */

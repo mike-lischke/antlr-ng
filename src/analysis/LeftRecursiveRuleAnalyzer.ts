@@ -5,8 +5,6 @@
 
 /* eslint-disable jsdoc/require-param, jsdoc/require-returns */
 
-import { fileURLToPath } from "node:url";
-
 import { CommonToken, IntervalSet, Token, type TokenStream } from "antlr4ng";
 import { STGroupFile, type STGroup } from "stringtemplate4ts";
 
@@ -35,8 +33,7 @@ enum Associativity {
  *  our pattern.
  */
 export class LeftRecursiveRuleAnalyzer extends LeftRecursiveRuleWalker {
-    private static readonly templateGroupFile = fileURLToPath(new URL("../../templates/LeftRecursiveRules.stg",
-        import.meta.url));
+    private static readonly templateGroupFile = "/templates/LeftRecursiveRules.stg";
     private static readonly recRuleTemplates = new STGroupFile(LeftRecursiveRuleAnalyzer.templateGroupFile);
 
     public tool: Tool;

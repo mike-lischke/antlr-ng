@@ -3,15 +3,13 @@
  * Licensed under the BSD 3-clause License. See License.txt in the project root for license information.
  */
 
-import { writeFileSync } from "node:fs";
-
 import { Token } from "antlr4ng";
 import { AutoIndentWriter, ST, StringWriter, type IST, type STGroup } from "stringtemplate4ts";
 
 import { Constants } from "../Constants.js";
 import { Tool } from "../Tool.js";
-import { IssueCode } from "../tool/Issues.js";
 import { Grammar } from "../tool/Grammar.js";
+import { IssueCode } from "../tool/Issues.js";
 import { OutputModelObject } from "./model/OutputModelObject.js";
 import { OutputModelController } from "./OutputModelController.js";
 import { OutputModelWalker } from "./OutputModelWalker.js";
@@ -19,7 +17,7 @@ import { ParserFactory } from "./ParserFactory.js";
 import { Target } from "./Target.js";
 
 // Possible targets:
-import type { IToolParameters } from "../tool-parameters.js";
+import { fileSystem, type IToolParameters } from "../tool-parameters.js";
 import { CppTarget } from "./target/CppTarget.js";
 import { CSharpTarget } from "./target/CSharpTarget.js";
 import { DartTarget } from "./target/DartTarget.js";
@@ -162,7 +160,7 @@ export class CodeGenerator {
             wr.setLineWidth(this.lineWidth);
             code.write(wr);
 
-            writeFileSync(fileName, w.toString(), "utf8");
+            fileSystem.writeFileSync(fileName, w.toString(), { encoding: "utf8" });
         } catch (cause) {
             if (cause instanceof Error) {
                 this.g!.tool.errorManager.toolError(IssueCode.CannotWriteFile, cause, fileName);

@@ -7,11 +7,10 @@
 
 import { expect } from "vitest";
 
-import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { fileURLToPath } from "node:url";
 
-import { existsSync, mkdtempSync, readFileSync, rmSync, symlinkSync, writeFileSync } from "node:fs";
+import { existsSync, readFileSync, symlinkSync, writeFileSync } from "node:fs";
 import { mkdir } from "node:fs/promises";
 
 import {
@@ -25,6 +24,8 @@ import { LexerATNFactory } from "../src/automata/LexerATNFactory.js";
 import { ParserATNFactory } from "../src/automata/ParserATNFactory.js";
 import type { Constructor } from "../src/misc/Utils.js";
 import { SemanticPipeline } from "../src/semantics/SemanticPipeline.js";
+import { copyFolderFromMemFs, generateRandomFilename } from "../src/support/fs-helpers.js";
+import { fileSystem, type IToolParameters } from "../src/tool-parameters.js";
 import { ToolListener } from "../src/tool/ToolListener.js";
 import { Tool, type Grammar, type LexerGrammar } from "../src/tool/index.js";
 import type { InterpreterTreeTextProvider } from "./InterpreterTreeTextProvider.js";
@@ -59,6 +60,43 @@ export interface ICapturedOutput {
     error: string;
 }
 
+export const xpathTestGrammar =
+    "grammar Expr;\n" +
+    "prog:   func+ ;\n" +
+    "func:  'def' ID '(' arg (',' arg)* ')' body ;\n" +
+    "body:  '{' stat+ '}' ;\n" +
+    "arg :  ID ;\n" +
+    "stat:   expr ';'                 # printExpr\n" +
+    "    |   ID '=' expr ';'          # assign\n" +
+    "    |   'return' expr ';'        # ret\n" +
+    "    |   ';'                      # blank\n" +
+    "    ;\n" +
+    "expr:   expr ('*'|'/') expr      # MulDiv\n" +
+    "    |   expr ('+'|'-') expr      # AddSub\n" +
+    "    |   primary                  # prim\n" +
+    "    ;\n" +
+    "primary" +
+    "    :   INT                      # int\n" +
+    "    |   ID                       # id\n" +
+    "    |   '(' expr ')'             # parens\n" +
+    "	 ;" +
+    "\n" +
+    "MUL :   '*' ; // assigns token name to '*' used above in grammar\n" +
+    "DIV :   '/' ;\n" +
+    "ADD :   '+' ;\n" +
+    "SUB :   '-' ;\n" +
+    "RETURN : 'return' ;\n" +
+    "ID  :   [a-zA-Z]+ ;      // match identifiers\n" +
+    "INT :   [0-9]+ ;         // match integers\n" +
+    "NEWLINE:'\\r'? '\\n' -> skip;     // return newlines to parser (is end-statement signal)\n" +
+    "WS  :   [ \\t]+ -> skip ; // toss out whitespace\n"
+    ;
+
+/**
+ * This class generates test parsers/lexers in the virtual filesystem, but executes them on the physical file system,
+ * as we need to let tsx compile sources.
+ * The class takes care to keep physical and virtual file systems in sync.
+ */
 export class ToolTestUtils {
     public static async execLexer(grammarFileName: string, grammarStr: string, lexerName: string, input: string,
         workingDir: string): Promise<ErrorQueue> {
@@ -121,9 +159,18 @@ export class ToolTestUtils {
             const lines = grammarStr.split("\n");
             const fileName = ToolTestUtils.getFilenameFromFirstLineOfGrammar(lines[0]);
 
-            const tempTestDir = mkdtempSync(join(tmpdir(), "AntlrTestErrors-"));
+            const tempTestDir = generateRandomFilename("/tmp/AntlrTestErrors-");
+            fileSystem.mkdirSync(tempTestDir, { recursive: true });
             try {
-                const queue = this.antlrOnString(tempTestDir, null, fileName, grammarStr, false);
+                const parameters: IToolParameters = {
+                    grammarFiles: [tempTestDir + "/" + fileName],
+                    outputDirectory: tempTestDir,
+                    generateListener: false,
+                    generateVisitor: false,
+                    exactOutputDir: true
+                };
+
+                const queue = this.antlrOnString(parameters, grammarStr, false);
 
                 let actual = "";
                 if (ignoreWarnings) {
@@ -144,7 +191,7 @@ export class ToolTestUtils {
 
                 expect(actual).toBe(expected);
             } finally {
-                rmSync(tempTestDir, { recursive: true });
+                fileSystem.rmSync(tempTestDir, { recursive: true });
             }
         }
     }
@@ -153,21 +200,45 @@ export class ToolTestUtils {
         await this.setupRuntime(workDir);
 
         // Assuming a combined grammar here. Write the grammar file and run the code generation.
-        writeFileSync(join(workDir, runOptions.grammarFileName), runOptions.grammarStr);
-        const queue = this.antlrOnFile(workDir, "TypeScript", runOptions.grammarFileName, false);
-        expect(queue.errors.length).toBe(0);
+        // Prepare the virtual filesystem to do the generation.
+        fileSystem.mkdirSync(workDir, { recursive: true });
+        fileSystem.writeFileSync(join(workDir, runOptions.grammarFileName), runOptions.grammarStr);
 
-        const lexerConstructor = await this.importClass<Lexer>(join(workDir, runOptions.lexerName + ".js"),
-            runOptions.lexerName!);
-        const parserConstructor = await this.importClass<Parser>(join(workDir, runOptions.parserName + ".js"),
-            runOptions.parserName!);
+        try {
+            const parameters: IToolParameters = {
+                grammarFiles: [workDir + "/" + runOptions.grammarFileName],
+                outputDirectory: workDir,
+                define: { language: "TypeScript" },
+                generateListener: runOptions.useListener,
+                generateVisitor: runOptions.useVisitor,
+                exactOutputDir: true
+            };
+            const queue = this.antlrOnString(parameters, runOptions.grammarStr, false);
+            expect(queue.errors.length).toBe(0);
 
-        const lexer = new lexerConstructor(CharStream.fromString(runOptions.input));
-        const tokens = new CommonTokenStream(lexer);
-        const parser = new parserConstructor(tokens);
-        parser.removeErrorListeners();
+            // Copy generated files from the virtual filesystem to the physical filesystem.
+            const generatedFiles = fileSystem.readdirSync(workDir, "utf-8") as string[];
+            for (const file of generatedFiles) {
+                if (file.endsWith(".ts")) {
+                    writeFileSync(join(workDir, file), fileSystem.readFileSync(join(workDir, file), "utf8"));
+                }
+            }
 
-        return [lexer, parser];
+            const lexerConstructor = await this.importClass<Lexer>(join(workDir, runOptions.lexerName + ".js"),
+                runOptions.lexerName!);
+            const parserConstructor = await this.importClass<Parser>(join(workDir, runOptions.parserName + ".js"),
+                runOptions.parserName!);
+
+            const lexer = new lexerConstructor(CharStream.fromString(runOptions.input));
+            const tokens = new CommonTokenStream(lexer);
+            const parser = new parserConstructor(tokens);
+            parser.removeErrorListeners();
+
+            return [lexer, parser];
+        } finally {
+            fileSystem.rmSync(workDir, { recursive: true });
+        }
+
     }
 
     public static getFilenameFromFirstLineOfGrammar(line: string): string {
@@ -210,61 +281,39 @@ export class ToolTestUtils {
         return atn;
     }
 
-    /** Write a grammar to tmpdir and run antlr */
-    public static antlrOnString(workdir: string, targetName: string | null,
-        grammarFileName: string, grammarStr: string, defaultListener: boolean, ...extraOptions: string[]): ErrorQueue {
+    /** Writes a grammar to the virtual file system and runs antlr-ng. */
+    public static antlrOnString(parameters: IToolParameters, grammarStr: string, defaultListener: boolean): ErrorQueue {
+        // The path must exist at this point.
+        fileSystem.writeFileSync(parameters.grammarFiles[0], grammarStr);
 
-        writeFileSync(join(workdir, grammarFileName), grammarStr);
-
-        return this.antlrOnFile(workdir, targetName, grammarFileName, defaultListener, ...extraOptions);
+        return this.antlrOnFile(parameters, defaultListener);
     }
 
-    /** Run ANTLR on stuff in workdir and error queue back. */
-    public static antlrOnFile(workdir: string, targetName: string | null, grammarFileName: string,
-        defaultListener: boolean, ...extraOptions: string[]): ErrorQueue {
-        const options: string[] = [...extraOptions];
+    /** Run antlr-ng on stuff in workdir and error queue back. */
+    public static antlrOnFile(parameters: IToolParameters, defaultListener: boolean): ErrorQueue {
+        const tool = new Tool();
 
-        if (targetName !== null) {
-            options.push("-Dlanguage=" + targetName);
-        }
+        parameters.encoding ??= "utf-8";
+        parameters.define ??= {};
 
-        if (!options.includes("-o")) {
-            options.push("-o");
-            options.push(workdir);
-        }
-
-        if (!options.includes("--lib")) {
-            options.push("--lib");
-            options.push(workdir);
-        }
-
-        if (!options.includes("--encoding")) {
-            options.push("--encoding");
-            options.push("utf-8");
-        }
-
-        options.push(join(workdir, grammarFileName));
-
-        const antlr = new Tool(options);
-
-        const queue = new ErrorQueue(antlr.errorManager);
-        antlr.errorManager.addListener(queue);
+        const queue = new ErrorQueue(tool.errorManager);
+        tool.errorManager.addListener(queue);
         if (defaultListener) {
-            antlr.errorManager.addListener(new ToolListener(antlr.errorManager));
+            tool.errorManager.addListener(new ToolListener(tool.errorManager));
         }
 
-        antlr.processGrammarsOnCommandLine();
+        tool.generate(parameters);
 
         return queue;
     }
 
     public static semanticProcess(g: Grammar): void {
         if (!g.ast.hasErrors) {
-            const antlr = new Tool();
+            const tool = new Tool();
             const sem = new SemanticPipeline(g);
             sem.process();
             for (const imp of g.getImportedGrammars()) {
-                antlr.processNonCombinedGrammar(imp, false);
+                tool.processNonCombinedGrammar(imp, false);
             }
         }
     }
@@ -365,14 +414,36 @@ export class ToolTestUtils {
         }
     };
 
+    /**
+     * Executes the recognizer for the given run options and returns the error queue. This must happen on the
+     * physical file system, to allow tsx to transpile the sources.
+     *
+     * @param runOptions Everthing needed to run the recognizer.
+     * @param workDir The pyhsical working directory to use.
+     *
+     * @returns The error queue.
+     */
     private static async execRecognizer(runOptions: IRunOptions, workDir: string): Promise<ErrorQueue> {
         await this.setupRuntime(workDir);
 
-        writeFileSync(join(workDir, runOptions.grammarFileName), runOptions.grammarStr);
+        // Prepare the virtual filesystem to do the generation.
+        fileSystem.mkdirSync(workDir, { recursive: true });
+        fileSystem.writeFileSync(join(workDir, runOptions.grammarFileName), runOptions.grammarStr);
 
-        const queue = this.antlrOnFile(workDir, "TypeScript", runOptions.grammarFileName, false);
+        const parameters: IToolParameters = {
+            grammarFiles: [join(workDir, runOptions.grammarFileName)],
+            outputDirectory: workDir,
+            define: { language: "TypeScript" },
+            generateListener: runOptions.useListener,
+            generateVisitor: runOptions.useVisitor,
+            exactOutputDir: true
+        };
+        const queue = this.antlrOnFile(parameters, false);
         this.writeTestFile(workDir, runOptions);
         writeFileSync(join(workDir, "input"), runOptions.input);
+
+        // Copy generated files from the virtual filesystem to the physical filesystem.
+        copyFolderFromMemFs(fileSystem, workDir, workDir, false, /\.ts/);
 
         const testName = join(workDir, "Test.js");
 
@@ -423,6 +494,5 @@ export class ToolTestUtils {
             await mkdir(join(workDir, "node_modules"), { recursive: true });
             symlinkSync(antlr4tsSource, antlr4ngTarget, "dir");
         }
-
     }
 }

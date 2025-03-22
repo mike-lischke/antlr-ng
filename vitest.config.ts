@@ -13,5 +13,6 @@ export default defineConfig({
             concurrent: true,
         },
         testTimeout: 10000,
+        setupFiles: ["./tests/setup.ts"],
     }
 });

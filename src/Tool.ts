@@ -4,12 +4,12 @@
  */
 
 import { ATNSerializer, CharStream, CommonTokenStream } from "antlr4ng";
-import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { basename, dirname, isAbsolute, join } from "node:path";
 
 import { ANTLRv4Parser } from "./generated/ANTLRv4Parser.js";
 
 import { ClassFactory } from "./ClassFactory.js";
+import { Constants } from "./Constants.js";
 import { UndefChecker } from "./UndefChecker.js";
 import { AnalysisPipeline } from "./analysis/AnalysisPipeline.js";
 import { IATNFactory } from "./automata/IATNFactory.js";
@@ -25,7 +25,7 @@ import { GrammarType } from "./support/GrammarType.js";
 import { LogManager } from "./support/LogManager.js";
 import { ParseTreeToASTConverter } from "./support/ParseTreeToASTConverter.js";
 import { convertArrayToString } from "./support/helpers.js";
-import { parseToolParameters, type IToolParameters } from "./tool-parameters.js";
+import { fileSystem, type IToolParameters } from "./tool-parameters.js";
 import { BuildDependencyGenerator } from "./tool/BuildDependencyGenerator.js";
 import { DOTGenerator } from "./tool/DOTGenerator.js";
 import { ErrorManager } from "./tool/ErrorManager.js";
@@ -38,53 +38,17 @@ import { GrammarAST } from "./tool/ast/GrammarAST.js";
 import { GrammarRootAST } from "./tool/ast/GrammarRootAST.js";
 import type { RuleAST } from "./tool/ast/RuleAST.js";
 import type { IGrammar, ITool } from "./types.js";
-import { Constants } from "./Constants.js";
+import { useFileSystem } from "stringtemplate4ts";
 
 export class Tool implements ITool {
     public readonly logMgr = new LogManager();
+    public readonly errorManager = new ErrorManager();
 
-    public readonly errorManager;
-
-    public readonly toolParameters: IToolParameters = { args: [], encoding: "utf-8" };
-
-    protected grammarFiles = new Array<string>();
+    public toolParameters: IToolParameters;
 
     private readonly importedGrammars = new Map<string, Grammar>();
 
-    public constructor(args?: string[]) {
-        if (args) {
-            this.toolParameters = parseToolParameters(args);
-        }
-
-        this.grammarFiles = this.toolParameters.args;
-        this.errorManager = new ErrorManager(this.toolParameters.msgFormat, this.toolParameters.longMessages,
-            this.toolParameters.warningsAreErrors);
-        if (args && args.length > 0 && this.grammarFiles.length === 0) {
-            this.errorManager.toolError(IssueCode.NoGrammarsFound);
-        }
-    }
-
-    public static main(args: string[]): void {
-        const antlr = new Tool(args);
-        try {
-            antlr.processGrammarsOnCommandLine();
-        } catch {
-            antlr.exit(1);
-        } finally {
-            if (antlr.toolParameters.log) {
-                try {
-                    const logName = antlr.logMgr.save();
-                    console.log("wrote " + logName);
-                } catch (ioe) {
-                    antlr.errorManager.toolError(IssueCode.InternalError, ioe);
-                }
-            }
-        }
-
-        antlr.exit(0);
-    }
-
-    public static generateInterpreterData(g: Grammar): string {
+    private static generateInterpreterData(g: Grammar): string {
         let content = "";
 
         content += "token literal names:\n";
@@ -144,22 +108,42 @@ export class Tool implements ITool {
         return null;
     }
 
-    public processGrammarsOnCommandLine(): void {
-        const sortedGrammars = this.sortGrammarByTokenVocab(this.grammarFiles);
+    /**
+     * Initiates a full generation process with the given parameters.
+     *
+     * @param parameters Details about the generation process (source + target files, options, etc.).
+     *
+     * @returns true if the run was successful, false otherwise.
+     */
+    public generate(parameters: IToolParameters): boolean {
+        try {
+            this.toolParameters = parameters;
+            if (this.toolParameters.grammarFiles.length === 0) {
+                this.errorManager.toolError(IssueCode.NoGrammarsFound);
 
-        for (const t of sortedGrammars) {
-            const g = this.createGrammar(t);
-            g.fileName = t.fileName;
-            if (this.toolParameters.generateDependencies) {
-                const dep = new BuildDependencyGenerator(this, g);
-                console.log(dep.getDependencies().render());
-            } else {
-                if (this.errorManager.errors === 0) {
-                    this.process(g, true);
+                return false;
+            }
+
+            // Reset and (re)configure the error manager.
+            this.errorManager.configure(this.toolParameters.msgFormat, this.toolParameters.longMessages,
+                this.toolParameters.warningsAreErrors);
+
+            this.processGrammarsOnCommandLine();
+        } catch {
+            return false;
+        } finally {
+            if (this.toolParameters.log) {
+                try {
+                    const logName = this.logMgr.save();
+                    console.log("wrote " + logName);
+                } catch (ioe) {
+                    this.errorManager.toolError(IssueCode.InternalError, ioe);
                 }
             }
         }
-    };
+
+        return true;
+    }
 
     /**
      * To process a grammar, we load all of its imported grammars into subordinate grammar objects. Then we merge the
@@ -167,9 +151,12 @@ export class Tool implements ITool {
      * lexer. Once all this is done, we process the lexer first, if present, and then the parser grammar
      *
      * @param g The grammar to process.
+     * @param parameters Details about the generation process (source + target files, options, etc.).
      * @param genCode Whether to generate code or not.
      */
-    public process(g: Grammar, genCode: boolean): void {
+    public process(g: Grammar, parameters: IToolParameters, genCode: boolean): void {
+        this.toolParameters = parameters;
+
         g.loadImportedGrammars(new Set());
 
         const transform = new GrammarTransformPipeline(g, this);
@@ -232,7 +219,7 @@ export class Tool implements ITool {
             const interpFile = Tool.generateInterpreterData(g);
             try {
                 const fileName = this.getOutputFile(g, g.name + ".interp");
-                writeFileSync(fileName, interpFile);
+                fileSystem.writeFileSync(fileName, interpFile);
             } catch (ioe) {
                 this.errorManager.toolError(IssueCode.CannotWriteFile, ioe);
             }
@@ -377,8 +364,8 @@ export class Tool implements ITool {
     public parseGrammar(fileName: string): GrammarRootAST | undefined {
         try {
             const encoding = this.toolParameters.encoding ?? "utf-8";
-            const content = readFileSync(fileName, { encoding: encoding as BufferEncoding });
-            const input = CharStream.fromString(content);
+            const content = fileSystem.readFileSync(fileName, { encoding: encoding as BufferEncoding });
+            const input = CharStream.fromString(content as string);
             input.name = basename(fileName);
 
             return this.parse(input);
@@ -433,9 +420,9 @@ export class Tool implements ITool {
                 return null;
             }
 
-            const grammarEncoding = this.toolParameters.encoding as BufferEncoding;
-            const content = readFileSync(importedFile, { encoding: grammarEncoding });
-            const input = CharStream.fromString(content);
+            const grammarEncoding = (this.toolParameters.encoding ?? "utf-8") as BufferEncoding;
+            const content = fileSystem.readFileSync(importedFile, { encoding: grammarEncoding });
+            const input = CharStream.fromString(content as string);
             input.name = basename(importedFile);
 
             const result = this.parse(input);
@@ -510,8 +497,8 @@ export class Tool implements ITool {
         const outputDir = this.getOutputDirectory(g.fileName);
         const outputFile = join(outputDir, fileName);
 
-        if (!existsSync(outputDir)) {
-            mkdirSync(outputDir, { recursive: true });
+        if (!fileSystem.existsSync(outputDir)) {
+            fileSystem.mkdirSync(outputDir, { recursive: true });
         }
 
         return outputFile;
@@ -519,17 +506,17 @@ export class Tool implements ITool {
 
     public getImportedGrammarFile(g: Grammar, fileName: string): string | undefined {
         let candidate = fileName;
-        if (!existsSync(candidate)) {
+        if (!fileSystem.existsSync(candidate)) {
             // Check the parent dir of input directory..
             const parentDir = dirname(g.fileName);
             candidate = join(parentDir, fileName);
 
             // Try in lib dir.
-            if (!existsSync(candidate)) {
+            if (!fileSystem.existsSync(candidate)) {
                 const libDirectory = this.toolParameters.lib;
                 if (libDirectory) {
                     candidate = join(libDirectory, fileName);
-                    if (!existsSync(candidate)) {
+                    if (!fileSystem.existsSync(candidate)) {
                         return undefined;
                     }
 
@@ -586,12 +573,33 @@ export class Tool implements ITool {
     protected writeDOTFile(g: Grammar, rulOrName: Rule | string, dot: string): void {
         const name = rulOrName instanceof Rule ? rulOrName.g.name + "." + rulOrName.name : rulOrName;
         const fileName = this.getOutputFile(g, name + ".dot");
-        writeFileSync(fileName, dot);
+        fileSystem.writeFileSync(fileName, dot);
     }
+
+    private processGrammarsOnCommandLine(): void {
+        const sortedGrammars = this.sortGrammarByTokenVocab(this.toolParameters.grammarFiles);
+
+        for (const t of sortedGrammars) {
+            const g = this.createGrammar(t);
+            g.fileName = t.fileName;
+            if (this.toolParameters.generateDependencies) {
+                const dep = new BuildDependencyGenerator(this, g);
+                console.log(dep.getDependencies().render());
+            } else {
+                if (this.errorManager.errors === 0) {
+                    this.process(g, this.toolParameters, true);
+                }
+            }
+        }
+    };
 
     static {
         ClassFactory.createTool = () => {
             return new Tool();
         };
+
+        // Make sure the template engine uses the same virtual file system as we do.
+        // This early registration is useful if you don't need a private file system for the templates.
+        useFileSystem(fileSystem);
     }
 }

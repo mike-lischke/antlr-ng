@@ -7,7 +7,6 @@
 
 // cspell: ignore gofmt ioutil wjkohnen
 
-import * as path from "path";
 import type { ST } from "stringtemplate4ts";
 import { GrammarType } from "../../support/GrammarType.js";
 import { Grammar } from "../../tool/Grammar.js";
@@ -142,7 +141,7 @@ export class GoTarget extends Target {
         // Criterion taken from gofmt.
         if (g && GoTarget.doGoFormat && !fileName.startsWith(".")
             && fileName.endsWith(".go")) {
-            this.gofmt(path.join(g.tool.getOutputDirectory(g.fileName), fileName));
+            this.gofmt(g.tool.getOutputDirectory(g.fileName) + "/" + fileName);
         }
     }
 

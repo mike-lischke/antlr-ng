@@ -7,16 +7,14 @@
 
 import { beforeAll, describe, expect, it } from "vitest";
 
-import {
-    CharStream, CommonTokenStream, DecisionInfo
-} from "antlr4ng";
+import { CharStream, CommonTokenStream, DecisionInfo } from "antlr4ng";
 
 import { Grammar, LexerGrammar } from "../src/tool/index.js";
-import { ToolTestUtils } from "./ToolTestUtils.js";
-import { TestXPath } from "./TestXPath.spec.js";
+import { ToolTestUtils, xpathTestGrammar } from "./ToolTestUtils.js";
 import { mkdtempSync, rmSync } from "node:fs";
 import { join } from "node:path";
 import { tmpdir } from "node:os";
+import type { IToolParameters } from "../src/tool-parameters.js";
 
 describe("TestParserProfiler", () => {
     let lg: LexerGrammar;
@@ -31,7 +29,12 @@ describe("TestParserProfiler", () => {
             "INT : [0-9]+ ;\n" +
             "PLUS : '+' ;\n" +
             "MULT : '*' ;\n");
-        lg.tool.process(lg, false);
+
+        const parameters: IToolParameters = {
+            grammarFiles: ["L.g4"],
+            outputDirectory: ".",
+        };
+        lg.tool.process(lg, parameters, false);
     });
 
     const interpAndGetDecisionInfo = (lg: LexerGrammar, g: Grammar, startRule: string,
@@ -65,7 +68,12 @@ describe("TestParserProfiler", () => {
             "  | '.'\n" +
             "  ;\n",
             lg);
-        g.tool.process(g, false);
+
+        const parameters: IToolParameters = {
+            grammarFiles: ["L.g4"],
+            outputDirectory: ".",
+        };
+        g.tool.process(g, parameters, false);
 
         const info = interpAndGetDecisionInfo(lg, g, "s", ";");
         expect(info.length).toBe(1);
@@ -82,7 +90,12 @@ describe("TestParserProfiler", () => {
             "  | ID '.'\n" +
             "  ;\n",
             lg);
-        g.tool.process(g, false);
+
+        const parameters: IToolParameters = {
+            grammarFiles: ["L.g4"],
+            outputDirectory: ".",
+        };
+        g.tool.process(g, parameters, false);
 
         const info = interpAndGetDecisionInfo(lg, g, "s", "xyz;");
         expect(info.length).toBe(1);
@@ -99,7 +112,12 @@ describe("TestParserProfiler", () => {
             "  | ID '.'\n" +
             "  ;\n",
             lg);
-        g.tool.process(g, false);
+
+        const parameters: IToolParameters = {
+            grammarFiles: ["L.g4"],
+            outputDirectory: ".",
+        };
+        g.tool.process(g, parameters, false);
 
         const info = interpAndGetDecisionInfo(lg, g, "s", "xyz;", "abc;");
         expect(info.length).toBe(1);
@@ -116,7 +134,12 @@ describe("TestParserProfiler", () => {
             "  | ID '.'\n" +
             "  ;\n",
             lg);
-        g.tool.process(g, false);
+
+        const parameters: IToolParameters = {
+            grammarFiles: ["L.g4"],
+            outputDirectory: ".",
+        };
+        g.tool.process(g, parameters, false);
 
         // The '.' vs ';' causes another ATN transition
         const info = interpAndGetDecisionInfo(lg, g, "s", "xyz;", "abc;", "z.");
@@ -134,7 +157,12 @@ describe("TestParserProfiler", () => {
             "  | ID INT \n" +
             "  ;\n",
             lg);
-        g.tool.process(g, false);
+
+        const parameters: IToolParameters = {
+            grammarFiles: ["L.g4"],
+            outputDirectory: ".",
+        };
+        g.tool.process(g, parameters, false);
 
         const info = interpAndGetDecisionInfo(lg, g, "s", "a.b;");
         expect(info.length).toBe(2);
@@ -154,7 +182,12 @@ describe("TestParserProfiler", () => {
             "  | ID INT \n" +
             "  ;\n",
             lg);
-        g.tool.process(g, false);
+
+        const parameters: IToolParameters = {
+            grammarFiles: ["L.g4"],
+            outputDirectory: ".",
+        };
+        g.tool.process(g, parameters, false);
 
         const info = interpAndGetDecisionInfo(lg, g, "s", "a.b;", "a.b;");
         expect(info.length).toBe(2);
@@ -173,7 +206,12 @@ describe("TestParserProfiler", () => {
             "  | ';' e INT ID ;\n" +
             "e : INT | ;\n",
             lg);
-        g.tool.process(g, false);
+
+        const parameters: IToolParameters = {
+            grammarFiles: ["L.g4"],
+            outputDirectory: ".",
+        };
+        g.tool.process(g, parameters, false);
 
         const info = interpAndGetDecisionInfo(lg, g, "a", "; 1 x");
         expect(info.length).toBe(2);
@@ -184,7 +222,7 @@ describe("TestParserProfiler", () => {
     });
 
     it.skip("testSimpleLanguage", () => {
-        const g = new Grammar(TestXPath.grammar);
+        const g = new Grammar(xpathTestGrammar);
         const input =
             "def f(x,y) { x = 3+4*1*1/5*1*1+1*1+1; y; ; }\n" +
             "def g(x,a,b,c,d,e) { return 1+2*x; }\n" +
@@ -207,7 +245,12 @@ describe("TestParserProfiler", () => {
             "e : (ID|INT) ({true}? '+' e)*\n" + // d=1 entry, d=2 bypass
             "  ;\n",
             lg);
-        g.tool.process(g, false);
+
+        const parameters: IToolParameters = {
+            grammarFiles: ["L.g4"],
+            outputDirectory: ".",
+        };
+        g.tool.process(g, parameters, false);
 
         // pred forces to
         // ambig and ('+' e)* tail recursion forces lookahead to fall out of e

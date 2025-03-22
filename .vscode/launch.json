@@ -24,7 +24,7 @@
                 "-Dlanguage=TypeScript",
                 "--exact-output-dir",
                 "-o",
-                "./src/generated",
+                "./runner/generated",
                 "./src/grammars/ANTLRv4Lexer.g4",
             ],
             "sourceMaps": true,
@@ -41,14 +41,14 @@
             "runtimeExecutable": "npx",
             "runtimeArgs": [
                 "tsx",
-                "/Volumes/Extern/Work/projects/antlr-ng/cli/TestRig.ts",
-                "expr",
+                "${workspaceFolder}/cli/TestRig.ts",
+                "${workspaceFolder}/tests/grammars/generated/expr",
                 "start",
                 "--tokens",
                 "--trace",
                 "--diagnostics",
                 "--tree",
-                "input.txt"
+                "${workspaceFolder}/tests/grammars/expr-input.txt"
             ],
             "sourceMaps": true,
             "stopOnEntry": false,
@@ -56,7 +56,6 @@
             "console": "integratedTerminal",
             "preLaunchTask": "tsc: watch",
             "trace": false,
-            "cwd": "/users/mike/Downloads/antlr/expr"
         },
         {
             "type": "node",
@@ -69,7 +68,7 @@
                 "start",
                 "--tokens",
                 "--trace",
-                "/Volumes/Extern/Work/projects/antlr-ng/tests/data/expr.txt",
+                "/Volumes/Extern/Work/projects/antlr-ng/tests/grammars/expr-input.txt",
                 "/Volumes/Extern/Work/projects/antlr-ng/tests/grammars/expr.g4",
             ],
             "sourceMaps": true,
@@ -126,7 +125,9 @@
             "program": "${workspaceFolder}/node_modules/vitest/vitest.mjs",
             "args": [
                 "run",
-                "${relativeFile}"
+                "${relativeFile}",
+                "--test-timeout",
+                "0"
             ],
             "autoAttachChildProcesses": true,
             "skipFiles": [

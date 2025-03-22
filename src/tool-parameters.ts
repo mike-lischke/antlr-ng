@@ -4,16 +4,30 @@
  */
 
 import { Command, Option } from "commander";
+import { type IFs, fs as defaultFs } from "memfs";
+import { useFileSystem as ufs } from "stringtemplate4ts";
+
+export let fileSystem: IFs = defaultFs;
 
 import { antlrVersion } from "./version.js";
 
+/**
+ * Registers a memfs file system that holds input files and gets the output.
+ *
+ * @param fs The file system to use.
+ */
+export const useFileSystem = (fs: IFs): void => {
+    // antlr-ng and ST4TS share the same virtual file system.
+    fileSystem = fs;
+    ufs(fs);
+};
+
 export interface IToolParameters {
-    /** The grammar files. */
-    args: string[];
+    grammarFiles: string[];
 
     define?: Record<string, string>,
 
-    outputDirectory?: string,
+    outputDirectory: string,
     lib?: string,
     atn?: boolean,
     encoding?: string,
@@ -83,7 +97,7 @@ export const parseToolParameters = (args: string[]): IToolParameters => {
 
     const result = prepared.opts<IToolParameters>();
 
-    result.args = prepared.args;
+    result.grammarFiles = prepared.args;
 
     return result;
 };

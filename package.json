@@ -30,7 +30,8 @@
     "dependencies": {
         "antlr4ng": "3.0.16",
         "commander": "13.1.0",
-        "stringtemplate4ts": "1.0.9",
+        "memfs": "4.17.0",
+        "stringtemplate4ts": "2.0.1",
         "unicode-properties": "1.4.1"
     },
     "devDependencies": {

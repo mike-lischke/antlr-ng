@@ -18,6 +18,7 @@ import { SemanticPipeline } from "../src/semantics/SemanticPipeline.js";
 import { Grammar } from "../src/tool/Grammar.js";
 import type { LexerGrammar } from "../src/tool/LexerGrammar.js";
 import { ErrorQueue } from "./support/ErrorQueue.js";
+import type { IToolParameters } from "../src/tool-parameters.js";
 
 describe("TestActionTranslation", () => {
     const attributeTemplate =
@@ -47,13 +48,16 @@ describe("TestActionTranslation", () => {
         st.add(actionName, action);
         const grammar = st.render();
         const g = new Grammar(grammar);
-        g.tool.toolParameters.define = { "language": "Java" };
 
-        // TODO: break this circular dependency.
         const errorQueue = new ErrorQueue(g.tool.errorManager);
         g.tool.errorManager.addListener(errorQueue);
 
-        g.tool.process(g, false);
+        const parameters: IToolParameters = {
+            outputDirectory: "/",
+            grammarFiles: [],
+            define: { "language": "Java" },
+        };
+        g.tool.process(g, parameters, false);
 
         if (!g.ast.hasErrors) {
             const sem = new SemanticPipeline(g);
@@ -66,8 +70,8 @@ describe("TestActionTranslation", () => {
 
             g.atn = factory.createATN();
 
-            const anal = new AnalysisPipeline(g);
-            anal.process();
+            const pipeline = new AnalysisPipeline(g);
+            pipeline.process();
 
             const gen = new CodeGenerator(g);
             const outputFileST = gen.generateParser(g.tool.toolParameters, false);
