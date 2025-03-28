@@ -12,8 +12,8 @@ import { ANTLRv4Parser } from "../generated/ANTLRv4Parser.js";
 import { CommonTreeNodeStream } from "../tree/CommonTreeNodeStream.js";
 import { SourceGenTriggers } from "../tree/walkers/SourceGenTriggers.js";
 
+import type { IToolConfiguration } from "../config/config.js";
 import { Utils } from "../misc/Utils.js";
-import type { IToolParameters } from "../tool-parameters.js";
 import { Alternative } from "../tool/Alternative.js";
 import type { ErrorManager } from "../tool/ErrorManager.js";
 import { Grammar } from "../tool/Grammar.js";
@@ -75,9 +75,9 @@ export class OutputModelController {
      * Build a file with a parser containing rule functions. Use the controller as factory in SourceGenTriggers so
      * it triggers codegen extensions too, not just the factory functions in this factory.
      */
-    public buildParserOutputModel(header: boolean, toolParameters: IToolParameters): OutputModelObject {
+    public buildParserOutputModel(header: boolean, configuration: IToolConfiguration): OutputModelObject {
         const gen = this.factory.getGenerator()!;
-        const file = this.parserFile(gen.getRecognizerFileName(header), toolParameters);
+        const file = this.parserFile(gen.getRecognizerFileName(header), configuration);
         file.parser = this.parser(file);
 
         const g = this.factory.g;
@@ -88,9 +88,9 @@ export class OutputModelController {
         return file;
     }
 
-    public buildLexerOutputModel(header: boolean, toolParameters: IToolParameters): OutputModelObject {
+    public buildLexerOutputModel(header: boolean, configuration: IToolConfiguration): OutputModelObject {
         const gen = this.factory.getGenerator()!;
-        const file = this.lexerFile(gen.getRecognizerFileName(header), toolParameters);
+        const file = this.lexerFile(gen.getRecognizerFileName(header), configuration);
         file.lexer = this.lexer(file);
 
         const g = this.factory.g;
@@ -101,40 +101,40 @@ export class OutputModelController {
         return file;
     }
 
-    public buildListenerOutputModel(header: boolean, toolParameters: IToolParameters): OutputModelObject {
+    public buildListenerOutputModel(header: boolean, configuration: IToolConfiguration): OutputModelObject {
         const gen = this.factory.getGenerator()!;
 
-        return new ListenerFile(this.factory, gen.getListenerFileName(header), toolParameters);
+        return new ListenerFile(this.factory, gen.getListenerFileName(header), configuration);
     }
 
-    public buildBaseListenerOutputModel(header: boolean, toolParameters: IToolParameters): OutputModelObject {
+    public buildBaseListenerOutputModel(header: boolean, configuration: IToolConfiguration): OutputModelObject {
         const gen = this.factory.getGenerator()!;
 
-        return new BaseListenerFile(this.factory, gen.getBaseListenerFileName(header), toolParameters);
+        return new BaseListenerFile(this.factory, gen.getBaseListenerFileName(header), configuration);
     }
 
-    public buildVisitorOutputModel(header: boolean, toolParameters: IToolParameters): OutputModelObject {
+    public buildVisitorOutputModel(header: boolean, configuration: IToolConfiguration): OutputModelObject {
         const gen = this.factory.getGenerator()!;
 
-        return new VisitorFile(this.factory, gen.getVisitorFileName(header), toolParameters);
+        return new VisitorFile(this.factory, gen.getVisitorFileName(header), configuration);
     }
 
-    public buildBaseVisitorOutputModel(header: boolean, toolParameters: IToolParameters): OutputModelObject {
+    public buildBaseVisitorOutputModel(header: boolean, configuration: IToolConfiguration): OutputModelObject {
         const gen = this.factory.getGenerator()!;
 
-        return new BaseVisitorFile(this.factory, gen.getBaseVisitorFileName(header), toolParameters);
+        return new BaseVisitorFile(this.factory, gen.getBaseVisitorFileName(header), configuration);
     }
 
-    public parserFile(fileName: string, toolParameters: IToolParameters): ParserFile {
-        return this.factory.parserFile(fileName, toolParameters)!;
+    public parserFile(fileName: string, configuration: IToolConfiguration): ParserFile {
+        return this.factory.parserFile(fileName, configuration)!;
     }
 
     public parser(file: ParserFile): Parser {
         return this.factory.parser(file)!;
     }
 
-    public lexerFile(fileName: string, toolParameters: IToolParameters): LexerFile {
-        return new LexerFile(this.factory, fileName, toolParameters);
+    public lexerFile(fileName: string, configuration: IToolConfiguration): LexerFile {
+        return new LexerFile(this.factory, fileName, configuration);
     }
 
     public lexer(file: LexerFile): Lexer {

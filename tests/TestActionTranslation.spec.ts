@@ -14,11 +14,11 @@ import { AnalysisPipeline } from "../src/analysis/AnalysisPipeline.js";
 import { LexerATNFactory } from "../src/automata/LexerATNFactory.js";
 import { ParserATNFactory } from "../src/automata/ParserATNFactory.js";
 import { CodeGenerator } from "../src/codegen/CodeGenerator.js";
+import type { IToolConfiguration } from "../src/config/config.js";
 import { SemanticPipeline } from "../src/semantics/SemanticPipeline.js";
 import { Grammar } from "../src/tool/Grammar.js";
 import type { LexerGrammar } from "../src/tool/LexerGrammar.js";
 import { ErrorQueue } from "./support/ErrorQueue.js";
-import type { IToolParameters } from "../src/tool-parameters.js";
 
 describe("TestActionTranslation", () => {
     const attributeTemplate =
@@ -52,10 +52,10 @@ describe("TestActionTranslation", () => {
         const errorQueue = new ErrorQueue(g.tool.errorManager);
         g.tool.errorManager.addListener(errorQueue);
 
-        const parameters: IToolParameters = {
+        const parameters: IToolConfiguration = {
             outputDirectory: "/",
             grammarFiles: [],
-            define: { "language": "Java" },
+            language: "Java",
         };
         g.tool.process(g, parameters, false);
 
@@ -74,7 +74,7 @@ describe("TestActionTranslation", () => {
             pipeline.process();
 
             const gen = new CodeGenerator(g);
-            const outputFileST = gen.generateParser(g.tool.toolParameters, false);
+            const outputFileST = gen.generateParser(g.tool.toolConfiguration, false);
             const output = outputFileST.render(72);
 
             const b = "#" + actionName + "#";

@@ -13,7 +13,7 @@ import type { IToolParameters } from "../src/tool-parameters.js";
 import { GrammarParserInterpreter } from "../src/tool/GrammarParserInterpreter.js";
 import { Grammar, LexerGrammar } from "../src/tool/index.js";
 
-const dummyParameters: IToolParameters = {
+const dummyParameters: IToolConfiguration = {
     grammarFiles: [],
     outputDirectory: "",
 };

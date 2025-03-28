@@ -81,7 +81,7 @@ describe("TestCodeGeneration", () => {
             g.atn = factory.createATN();
 
             const gen = new CodeGenerator(g);
-            const outputFileST = gen.generateParser(g.tool.toolParameters);
+            const outputFileST = gen.generateParser(g.tool.toolConfiguration);
 
             const debug = false;
             const interp = new DebugInterpreter(outputFileST.groupThatCreatedThisInstance,

@@ -24,7 +24,7 @@ describe("TestTokenPositionOptions", () => {
             "ID : [a-z]+ ;\n"
         );
 
-        const parameters: IToolParameters = {
+        const parameters: IToolConfiguration = {
             grammarFiles: [],
             outputDirectory: "",
             define: { "language": "Java" },
@@ -78,7 +78,7 @@ describe("TestTokenPositionOptions", () => {
             "ID : [a-z]+ ;\n"
         );
 
-        const parameters: IToolParameters = {
+        const parameters: IToolConfiguration = {
             grammarFiles: [],
             outputDirectory: "",
             define: { "language": "Java" },
@@ -131,7 +131,7 @@ describe("TestTokenPositionOptions", () => {
             "ID : [a-z]+ ;\n"
         );
 
-        const parameters: IToolParameters = {
+        const parameters: IToolConfiguration = {
             grammarFiles: [],
             outputDirectory: "",
             define: { "language": "Java" },

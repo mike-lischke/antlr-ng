@@ -234,7 +234,7 @@ describe.sequential("TestParserExec", () => {
     });
 
     it("Fail Element Option", () => {
-        const parameters: IToolParameters = {
+        const parameters: IToolConfiguration = {
             grammarFiles: ["T.g4"],
             outputDirectory: ".",
         };
@@ -249,7 +249,7 @@ describe.sequential("TestParserExec", () => {
         g.tool.process(g, parameters, false);
 
         const gen = new CodeGenerator(g);
-        const outputFileST = gen.generateParser(g.tool.toolParameters);
+        const outputFileST = gen.generateParser(g.tool.toolConfiguration);
         const outputFile = outputFileST.render();
         expect(outputFile).toContain("FailedPredicateException(this, \"false\", \"custom message\");");
     });

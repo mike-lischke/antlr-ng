@@ -435,7 +435,7 @@ fragment WS: [ \\r\\t\\n]+ ;
         g.tool.process(g, false);
 
         const gen = new CodeGenerator(g);
-        const outputFileST = gen.generateParser(g.tool.toolParameters);
+        const outputFileST = gen.generateParser(g.tool.toolConfiguration);
         const outputFile = outputFileST.render();
         expect(outputFile).toContain("FailedPredicateException(this, \"false\", \"custom message\");");
         expect(outputFile).toContain("return c.match(/^[0-9a-zA-Z_]+$/);");

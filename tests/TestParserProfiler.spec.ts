@@ -30,7 +30,7 @@ describe("TestParserProfiler", () => {
             "PLUS : '+' ;\n" +
             "MULT : '*' ;\n");
 
-        const parameters: IToolParameters = {
+        const parameters: IToolConfiguration = {
             grammarFiles: ["L.g4"],
             outputDirectory: ".",
         };
@@ -69,7 +69,7 @@ describe("TestParserProfiler", () => {
             "  ;\n",
             lg);
 
-        const parameters: IToolParameters = {
+        const parameters: IToolConfiguration = {
             grammarFiles: ["L.g4"],
             outputDirectory: ".",
         };
@@ -91,7 +91,7 @@ describe("TestParserProfiler", () => {
             "  ;\n",
             lg);
 
-        const parameters: IToolParameters = {
+        const parameters: IToolConfiguration = {
             grammarFiles: ["L.g4"],
             outputDirectory: ".",
         };
@@ -113,7 +113,7 @@ describe("TestParserProfiler", () => {
             "  ;\n",
             lg);
 
-        const parameters: IToolParameters = {
+        const parameters: IToolConfiguration = {
             grammarFiles: ["L.g4"],
             outputDirectory: ".",
         };
@@ -135,7 +135,7 @@ describe("TestParserProfiler", () => {
             "  ;\n",
             lg);
 
-        const parameters: IToolParameters = {
+        const parameters: IToolConfiguration = {
             grammarFiles: ["L.g4"],
             outputDirectory: ".",
         };
@@ -158,7 +158,7 @@ describe("TestParserProfiler", () => {
             "  ;\n",
             lg);
 
-        const parameters: IToolParameters = {
+        const parameters: IToolConfiguration = {
             grammarFiles: ["L.g4"],
             outputDirectory: ".",
         };
@@ -183,7 +183,7 @@ describe("TestParserProfiler", () => {
             "  ;\n",
             lg);
 
-        const parameters: IToolParameters = {
+        const parameters: IToolConfiguration = {
             grammarFiles: ["L.g4"],
             outputDirectory: ".",
         };
@@ -207,7 +207,7 @@ describe("TestParserProfiler", () => {
             "e : INT | ;\n",
             lg);
 
-        const parameters: IToolParameters = {
+        const parameters: IToolConfiguration = {
             grammarFiles: [],
             outputDirectory: ".",
         };
@@ -246,7 +246,7 @@ describe("TestParserProfiler", () => {
             "  ;\n",
             lg);
 
-        const parameters: IToolParameters = {
+        const parameters: IToolConfiguration = {
             grammarFiles: [],
             outputDirectory: ".",
         };

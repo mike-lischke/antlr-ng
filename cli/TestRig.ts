@@ -5,11 +5,6 @@
  * Licensed under the BSD 3-clause License. See License.txt in the project root for license information.
  */
 
-/*
-   eslint-disable @typescript-eslint/no-unsafe-function-type,
-   @typescript-eslint/no-unsafe-return
- */
-
 import * as nodeFs from "fs";
 import { fileURLToPath } from "node:url";
 import { resolve } from "node:path";
@@ -60,13 +55,6 @@ program
     .option<boolean>("--diagnostics", "Print out diagnostic information", parseBoolean, false)
     .option<boolean>("--sll", "Use SLL prediction mode (instead of LL)", parseBoolean, false)
     .argument("[inputFiles...]", "Input files")
-    .action((grammar, startRuleName, inputFiles, options) => {
-        console.log("\nGrammar:", grammar);
-        console.log("Start Rule:", startRuleName);
-        console.log("Input Files:", inputFiles);
-        console.log("Options: ", options);
-        console.log();
-    })
     .parse();
 
 const testRigOptions = program.opts<ITestRigCliParameters>();
@@ -158,10 +146,12 @@ export class TestRig {
         if (typeof parser[testRigOptions.startRuleName] === "function") {
             tree = (parser[testRigOptions.startRuleName] as RuleMethod)();
         } else {
-            console.error(`Method ${testRigOptions.startRuleName} not found in the class or is not a function`);
+            console.error(`\nMethod ${testRigOptions.startRuleName} not found in the class or it is not a function\n`);
+
+            process.exit(1);
         }
 
-        if (testRigOptions.tree && tree) {
+        if (testRigOptions.tree) {
             console.log(tree.toStringTree(parser));
         }
     }
@@ -172,6 +162,7 @@ export class TestRig {
             const module = await import(fileName) as ModuleType<T>;
 
             // Helper function to check if a class extends another class (directly or indirectly).
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-function-type
             const extendsClass = (child: Function, parent: Function): boolean => {
                 let proto = child.prototype as unknown;
                 while (proto) {
@@ -198,9 +189,12 @@ export class TestRig {
             }
 
             // @ts-expect-error - We know that TargetClass is a non-abstract constructor
-            return new targetClass();
+            return new targetClass() as T;
         } catch (e) {
-            throw new Error(`Could not load class ${t.name} from ${fileName}: ${e}`);
+            const message = e instanceof Error ? e.message : String(e);
+            console.error(`\nCould not load class ${t.name} from ${fileName}: \n${message}\n`);
+
+            process.exit(1);
         }
     }
 }

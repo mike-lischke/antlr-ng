@@ -5,12 +5,12 @@
 
 import { type Token, type TokenStream } from "antlr4ng";
 
+import type { IToolConfiguration } from "../../config/config.js";
 import { Utils } from "../../misc/Utils.js";
 import type { GrammarType } from "../../support/GrammarType.js";
-import type { IToolParameters } from "../../tool-parameters.js";
 import type { IGrammarRootAST } from "../../types.js";
-import { IGrammarASTVisitor } from "./IGrammarASTVisitor.js";
 import { GrammarASTWithOptions } from "./GrammarASTWithOptions.js";
+import { IGrammarASTVisitor } from "./IGrammarASTVisitor.js";
 
 /** This is the root node for a grammar (for the top level grammarSpec rule). */
 export class GrammarRootAST extends GrammarASTWithOptions implements IGrammarRootAST {
@@ -21,7 +21,7 @@ export class GrammarRootAST extends GrammarASTWithOptions implements IGrammarRoo
     public readonly tokenStream: TokenStream;
     public fileName: string;
 
-    public toolParameters?: IToolParameters;
+    public toolConfiguration?: IToolConfiguration;
 
     public constructor(node: GrammarRootAST);
     public constructor(t: Token, tokenStream: TokenStream);
@@ -93,18 +93,12 @@ export class GrammarRootAST extends GrammarASTWithOptions implements IGrammarRoo
 
     public override getOptionString(key: string): string | undefined {
         // Tool options.
-        if (this.toolParameters) {
-            if (Utils.hasKey(this.toolParameters, key)) {
-                const value = this.toolParameters[key];
+        if (this.toolConfiguration) {
+            if (Utils.hasKey(this.toolConfiguration, key)) {
+                const value = this.toolConfiguration[key];
                 if (typeof value === "string") {
                     return value;
                 }
-            }
-
-            // Defines.
-            const define = this.toolParameters.define?.[key];
-            if (define !== undefined) {
-                return define;
             }
         }
 

@@ -7,8 +7,8 @@ import { DecisionState, IntervalSet, PlusLoopbackState, StarLoopEntryState } fro
 
 import { ANTLRv4Parser } from "../generated/ANTLRv4Parser.js";
 
+import type { IToolConfiguration } from "../config/config.js";
 import { disjoint } from "../support/helpers.js";
-import type { IToolParameters } from "../tool-parameters.js";
 import { Alternative } from "../tool/Alternative.js";
 import type { Grammar } from "../tool/Grammar.js";
 import { LeftRecursiveRule } from "../tool/LeftRecursiveRule.js";
@@ -67,8 +67,8 @@ export class ParserFactory implements IOutputModelFactory {
         this.g = gen.g!;
     }
 
-    public parserFile(fileName: string, toolParameters: IToolParameters): ParserFile {
-        return new ParserFile(this, fileName, toolParameters);
+    public parserFile(fileName: string, configuration: IToolConfiguration): ParserFile {
+        return new ParserFile(this, fileName, configuration);
     }
 
     public parser(file: ParserFile): Parser {

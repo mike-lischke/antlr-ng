@@ -5,7 +5,7 @@
 
 import type { IntervalSet } from "antlr4ng";
 
-import type { IToolParameters } from "../tool-parameters.js";
+import type { IToolConfiguration } from "../config/config.js";
 import type { Alternative } from "../tool/Alternative.js";
 import type { Grammar } from "../tool/Grammar.js";
 import type { Rule } from "../tool/Rule.js";
@@ -31,7 +31,7 @@ export interface IOutputModelFactory {
 
     getGenerator(): CodeGenerator | undefined;
 
-    parserFile(fileName: string, toolParameters: IToolParameters): ParserFile | undefined;
+    parserFile(fileName: string, configuration: IToolConfiguration): ParserFile | undefined;
 
     parser(file: ParserFile): Parser | undefined;
 

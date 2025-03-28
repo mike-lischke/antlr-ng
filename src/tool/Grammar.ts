@@ -908,7 +908,7 @@ export class Grammar implements IGrammar, IAttributeResolver {
         const vocab = this.getOptionString("tokenVocab");
         if (vocab) {
             const vParser = new TokenVocabParser(this, this.tool.getOutputDirectory(this.fileName),
-                this.tool.toolParameters.lib);
+                this.tool.toolConfiguration.lib);
             const tokens = vParser.load();
             this.tool.logInfo({ component: "grammar", msg: `tokens=${String(tokens)}` });
 

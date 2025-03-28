@@ -13,8 +13,9 @@ import { CharStream, CommonToken, CommonTokenStream, DecisionInfo, ParseInfo } f
 
 import { dirname } from "node:path";
 import { fileURLToPath } from "node:url";
+import type { IToolConfiguration } from "../src/config/config.js";
 import { copyFolderToMemFs } from "../src/support/fs-helpers.js";
-import { useFileSystem, type IToolParameters } from "../src/tool-parameters.js";
+import { useFileSystem } from "../src/tool-parameters.js";
 import { Tool } from "../src/Tool.js";
 import type { GrammarParserInterpreter } from "../src/tool/GrammarParserInterpreter.js";
 import { Grammar, LexerGrammar } from "../src/tool/index.js";
@@ -110,19 +111,16 @@ export class Interpreter {
         const tool = new Tool();
         const listener = new ToolListener(tool.errorManager);
 
-        const parameters: IToolParameters = {
+        const parameters: IToolConfiguration = {
             grammarFiles: interpreterOptions.grammars,
             outputDirectory: ".",
-            encoding: interpreterOptions.encoding,
             generateListener: false,
             generateVisitor: false,
             atn: false,
             longMessages: false,
-            msgFormat: "antlr",
             warningsAreErrors: false,
             forceAtn: false,
             log: false,
-            exactOutputDir: false,
         };
 
         if (interpreterOptions.grammars.length === 1) {

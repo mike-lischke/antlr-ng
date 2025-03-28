@@ -17,7 +17,7 @@ import { ParserFactory } from "./ParserFactory.js";
 import { Target } from "./Target.js";
 
 // Possible targets:
-import { fileSystem, type IToolParameters } from "../tool-parameters.js";
+import { fileSystem } from "../tool-parameters.js";
 import { CppTarget } from "./target/CppTarget.js";
 import { CSharpTarget } from "./target/CSharpTarget.js";
 import { DartTarget } from "./target/DartTarget.js";
@@ -28,6 +28,7 @@ import { PHPTarget } from "./target/PHPTarget.js";
 import { Python3Target } from "./target/Python3Target.js";
 import { SwiftTarget } from "./target/SwiftTarget.js";
 import { TypeScriptTarget } from "./target/TypeScriptTarget.js";
+import type { IToolConfiguration } from "../config/config.js";
 
 export const targetLanguages = [
     "Cpp", "CSharp", "Dart", "Go", "JavaScript", "Java", "PHP", "Python3", "Swift", "TypeScript"
@@ -73,49 +74,49 @@ export class CodeGenerator {
         return this.target.templates;
     }
 
-    public generateLexer(toolParameters: IToolParameters, header?: boolean): IST {
+    public generateLexer(toolConfiguration: IToolConfiguration, header?: boolean): IST {
         this.ensureAtnExists();
         header ??= false;
 
-        return this.walk(this.createController(toolParameters.forceAtn)
-            .buildLexerOutputModel(header, toolParameters), header);
+        return this.walk(this.createController(toolConfiguration.atn)
+            .buildLexerOutputModel(header, toolConfiguration), header);
 
     }
 
-    public generateParser(toolParameters: IToolParameters, header?: boolean): IST {
+    public generateParser(toolConfiguration: IToolConfiguration, header?: boolean): IST {
         this.ensureAtnExists();
         header ??= false;
 
-        return this.walk(this.createController().buildParserOutputModel(header, toolParameters), header);
+        return this.walk(this.createController().buildParserOutputModel(header, toolConfiguration), header);
     }
 
-    public generateListener(toolParameters: IToolParameters, header?: boolean): IST {
+    public generateListener(toolConfiguration: IToolConfiguration, header?: boolean): IST {
         this.ensureAtnExists();
         header ??= false;
 
-        return this.walk(this.createController().buildListenerOutputModel(header, toolParameters), header);
+        return this.walk(this.createController().buildListenerOutputModel(header, toolConfiguration), header);
 
     }
 
-    public generateBaseListener(toolParameters: IToolParameters, header?: boolean): IST {
+    public generateBaseListener(toolConfiguration: IToolConfiguration, header?: boolean): IST {
         this.ensureAtnExists();
         header ??= false;
 
-        return this.walk(this.createController().buildBaseListenerOutputModel(header, toolParameters), header);
+        return this.walk(this.createController().buildBaseListenerOutputModel(header, toolConfiguration), header);
     }
 
-    public generateVisitor(toolParameters: IToolParameters, header?: boolean): IST {
+    public generateVisitor(toolConfiguration: IToolConfiguration, header?: boolean): IST {
         this.ensureAtnExists();
         header ??= false;
 
-        return this.walk(this.createController().buildVisitorOutputModel(header, toolParameters), header);
+        return this.walk(this.createController().buildVisitorOutputModel(header, toolConfiguration), header);
     }
 
-    public generateBaseVisitor(toolParameters: IToolParameters, header?: boolean): IST {
+    public generateBaseVisitor(toolConfiguration: IToolConfiguration, header?: boolean): IST {
         this.ensureAtnExists();
         header ??= false;
 
-        return this.walk(this.createController().buildBaseVisitorOutputModel(header, toolParameters), header);
+        return this.walk(this.createController().buildBaseVisitorOutputModel(header, toolConfiguration), header);
     }
 
     public writeRecognizer(outputFileST: IST, header: boolean): void {

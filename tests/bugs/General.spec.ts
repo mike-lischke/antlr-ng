@@ -16,7 +16,7 @@ import { Grammar, LexerGrammar } from "../../src/tool/index.js";
 import type { IToolParameters } from "../../src/tool-parameters.js";
 
 // Dummy parameters for the tests.
-const parameters: IToolParameters = {
+const parameters: IToolConfiguration = {
     grammarFiles: [],
     outputDirectory: "",
 };
@@ -136,7 +136,7 @@ describe("General", () => {
         g.tool.process(g, parameters, false);
 
         const gen = new CodeGenerator(g);
-        const outputFileST = gen.generateParser(g.tool.toolParameters);
+        const outputFileST = gen.generateParser(g.tool.toolConfiguration);
         const outputFile = outputFileST.render();
         expect(outputFile).toContain("FailedPredicateException(this, \"false\", \"custom message\");");
         expect(outputFile).toContain("\"\"\"Returns `True` iff on the current index of the parser's");

@@ -14,25 +14,12 @@ import { ToolListener } from "./ToolListener.js";
 import { basename } from "../support/fs-helpers.js";
 
 // The supported ANTLR message formats. Using ST here is overkill and will later be replaced with a simpler solution.
-const messageFormats = new Map<string, string>([
-    ["antlr", `
+const messageTemplate = `
 location(file, line, column) ::= "<file>:<line>:<column>:"
 message(id, text) ::= "(<id>) <text>"
 report(location, message, type) ::= "<type>(<message.id>): <location> <message.text>"
 wantsSingleLineMessage() ::= "false"
-`],
-    ["gnu", `
-location(file, line, column) ::= "<file>:<line>:<column>:"
-message(id, text) ::= "<text> [error <id>]"
-report(location, message, type) ::= "<location> <type>: <message>"
-wantsSingleLineMessage() ::= "true"
-`],
-    ["vs2005", `
-location(file, line, column) ::= "<file>(<line>,<column>)"
-message(id, text) ::= "error <id> : <text>"
-report(location, message, type) ::= "<location> : <type> <message.id> : <message.text>"
-wantsSingleLineMessage() ::= "true"
-`]]);
+`;
 
 /**
  * A class to take care of individual {@link ANTLRMessage}s. It can notify registered listeners about incomming
@@ -92,13 +79,13 @@ export class ErrorManager {
         return entry;
     }
 
-    public configure(msgFormat?: string, longMessages?: boolean, warningsAreErrors?: boolean) {
+    public configure(longMessages?: boolean, warningsAreErrors?: boolean) {
         this.errors = 0;
         this.warnings = 0;
         this.longMessages = longMessages ?? false;
         this.warningsAreErrors = warningsAreErrors ?? false;
 
-        this.loadFormat(msgFormat ?? "antlr");
+        this.loadFormat();
     }
 
     public formatWantsSingleLineMessage(): boolean {
@@ -308,23 +295,8 @@ export class ErrorManager {
      * The format gets reset either from the Tool if the user supplied a command line option to that effect.
      * Otherwise we just use the default "antlr".
      */
-    private loadFormat(formatName: string): void {
-        let loadedFormat = ErrorManager.loadedFormats.get(formatName);
-        if (!loadedFormat) {
-            let templates = messageFormats.get(formatName);
-            if (!templates) {
-                templates = messageFormats.get("antlr");
-                if (!templates) {
-                    throw new Error("Unknown message format: " + formatName);
-                }
-            }
-
-            loadedFormat = new STGroupString("ErrorManager", templates, "<", ">");
-            ErrorManager.loadedFormats.set(formatName, loadedFormat);
-        }
-
-        this.formatName = formatName;
-        this.format = loadedFormat;
+    private loadFormat(): void {
+        this.format = new STGroupString("ErrorManager", messageTemplate, "<", ">");
 
         if (this.initSTListener.size > 0) {
             throw new Error("Can't load messages format file:\n" + this.initSTListener.toString());
@@ -332,7 +304,7 @@ export class ErrorManager {
 
         const formatOK = this.verifyFormat();
         if (!formatOK) {
-            throw new Error("ANTLR messages format " + formatName + " invalid");
+            throw new Error("antlr-ng messages format is invalid");
         }
     }
 

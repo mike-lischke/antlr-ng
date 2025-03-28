@@ -37,12 +37,31 @@
         {
             "type": "node",
             "request": "launch",
+            "name": "Launch antlr-ng with config",
+            "runtimeExecutable": "npx",
+            "runtimeArgs": [
+                "tsx",
+                "cli/runner.ts",
+                "-c",
+                "../tests/antlr-ng.config.ts",
+                "../src/grammars/ANTLRv4Lexer.g4",
+            ],
+            "sourceMaps": true,
+            "stopOnEntry": false,
+            "smartStep": true,
+            "console": "integratedTerminal",
+            "preLaunchTask": "tsc: watch",
+            "trace": false
+        },
+        {
+            "type": "node",
+            "request": "launch",
             "name": "Launch TestRig",
             "runtimeExecutable": "npx",
             "runtimeArgs": [
                 "tsx",
                 "${workspaceFolder}/cli/TestRig.ts",
-                "${workspaceFolder}/tests/grammars/generated/expr",
+                "${workspaceFolder}/tests/generated/expr",
                 "start",
                 "--tokens",
                 "--trace",

@@ -6,11 +6,11 @@
     "author": "Mike Lischke",
     "repository": {
         "type": "git",
-        "url": "git+https://github.com/mike-lischke/antlr-ng.git"
+        "url": "git+https://github.com/antlr-ng/antlr-ng.git"
     },
     "homepage": "https://www.antlr-ng.org/",
     "bugs": {
-        "url": "https://github.com/mike-lischke/antlr-ng/issues"
+        "url": "https://github.com/antlr-ng/antlr-ng/issues"
     },
     "bin": {
         "antlr-ng": "dist/cli/runner.js",
@@ -61,18 +61,15 @@
         "build": "npm run generate-version-file && npm run generate-action-splitter && npm run generate-antlr-parser && npm run generate-test-parsers && npm run generate-unicode-data && npm run esbuild && tsc -p tsconfig.json",
         "esbuild": "tsx build/build.ts",
         "copy-templates": "tsx build/copy-templates.ts",
-        "TestRig": "tsx cli/TestRig.ts",
-        "grun": "tsx cli/TestRig.ts",
-        "interpreter": "tsx cli/Interpreter.ts",
-        "temp": "tsx cli/runner.ts --version",
         "test": "npm run generate-version-file && vitest --no-watch --no-coverage",
         "generate-action-splitter": "npm run generate-parser -- -o ./src/generated ./src/grammars/ActionSplitter.g4",
         "generate-antlr-parser": "npm run generate-parser -- -o ./src/generated ./src/grammars/ANTLRv4Lexer.g4 ./src/grammars/ANTLRv4Parser.g4",
-        "generate-test-parsers": "npm run generate-testp1 && npm run generate-testp2 && npm run generate-testp3 && npm run generate-testp4",
+        "generate-test-parsers": "npm run generate-testp1 && npm run generate-testp2 && npm run generate-testp3 && npm run generate-testp4 && npm run generate-testp5",
         "generate-testp1": "npm run generate-parser -- -o ./tests/generated ./tests/grammars/Java.g4",
         "generate-testp2": "npm run generate-parser -- -o ./tests/generated ./tests/grammars/JavaLR.g4",
         "generate-testp3": "npm run generate-parser -- -o ./tests/generated ./tests/grammars/PositionAdjustingLexer.g4",
         "generate-testp4": "npm run generate-parser -- -o ./tests/generated ./tests/grammars/Psl.g4",
+        "generate-testp5": "npm run generate-parser -- -o ./tests/generated ./tests/grammars/expr.g4",
         "generate-parser": "antlr-ng -Dlanguage=TypeScript --exact-output-dir",
         "generate-unicode-data": "tsx ./build/generate-unicode-data.ts",
         "generate-version-file": "tsx ./build/generate-version-file.ts",

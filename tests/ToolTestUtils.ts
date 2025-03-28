@@ -22,10 +22,11 @@ import { ST } from "stringtemplate4ts";
 import { Constants } from "../src/Constants.js";
 import { LexerATNFactory } from "../src/automata/LexerATNFactory.js";
 import { ParserATNFactory } from "../src/automata/ParserATNFactory.js";
+import type { IToolConfiguration } from "../src/config/config.js";
 import type { Constructor } from "../src/misc/Utils.js";
 import { SemanticPipeline } from "../src/semantics/SemanticPipeline.js";
 import { copyFolderFromMemFs, generateRandomFilename } from "../src/support/fs-helpers.js";
-import { fileSystem, type IToolParameters } from "../src/tool-parameters.js";
+import { fileSystem } from "../src/tool-parameters.js";
 import { ToolListener } from "../src/tool/ToolListener.js";
 import { Tool, type Grammar, type LexerGrammar } from "../src/tool/index.js";
 import type { InterpreterTreeTextProvider } from "./InterpreterTreeTextProvider.js";
@@ -162,12 +163,11 @@ export class ToolTestUtils {
             const tempTestDir = generateRandomFilename("/tmp/AntlrTestErrors-");
             fileSystem.mkdirSync(tempTestDir, { recursive: true });
             try {
-                const parameters: IToolParameters = {
+                const parameters: IToolConfiguration = {
                     grammarFiles: [tempTestDir + "/" + fileName],
                     outputDirectory: tempTestDir,
                     generateListener: false,
                     generateVisitor: false,
-                    exactOutputDir: true
                 };
 
                 const queue = this.antlrOnString(parameters, grammarStr, false);
@@ -187,7 +187,7 @@ export class ToolTestUtils {
                     actual = queue.toString(true);
                 }
 
-                actual = actual.replace(tempTestDir + "/", "");
+                actual = actual.replaceAll(tempTestDir + "/", "");
 
                 expect(actual).toBe(expected);
             } finally {
@@ -205,13 +205,12 @@ export class ToolTestUtils {
         fileSystem.writeFileSync(join(workDir, runOptions.grammarFileName), runOptions.grammarStr);
 
         try {
-            const parameters: IToolParameters = {
+            const parameters: IToolConfiguration = {
                 grammarFiles: [workDir + "/" + runOptions.grammarFileName],
                 outputDirectory: workDir,
-                define: { language: "TypeScript" },
+                language: "TypeScript",
                 generateListener: runOptions.useListener,
                 generateVisitor: runOptions.useVisitor,
-                exactOutputDir: true
             };
             const queue = this.antlrOnString(parameters, runOptions.grammarStr, false);
             expect(queue.errors.length).toBe(0);
@@ -282,7 +281,8 @@ export class ToolTestUtils {
     }
 
     /** Writes a grammar to the virtual file system and runs antlr-ng. */
-    public static antlrOnString(parameters: IToolParameters, grammarStr: string, defaultListener: boolean): ErrorQueue {
+    public static antlrOnString(parameters: IToolConfiguration, grammarStr: string,
+        defaultListener: boolean): ErrorQueue {
         // The path must exist at this point.
         fileSystem.writeFileSync(parameters.grammarFiles[0], grammarStr);
 
@@ -290,11 +290,8 @@ export class ToolTestUtils {
     }
 
     /** Run antlr-ng on stuff in workdir and error queue back. */
-    public static antlrOnFile(parameters: IToolParameters, defaultListener: boolean): ErrorQueue {
+    public static antlrOnFile(parameters: IToolConfiguration, defaultListener: boolean): ErrorQueue {
         const tool = new Tool();
-
-        parameters.encoding ??= "utf-8";
-        parameters.define ??= {};
 
         const queue = new ErrorQueue(tool.errorManager);
         tool.errorManager.addListener(queue);
@@ -430,13 +427,12 @@ export class ToolTestUtils {
         fileSystem.mkdirSync(workDir, { recursive: true });
         fileSystem.writeFileSync(join(workDir, runOptions.grammarFileName), runOptions.grammarStr);
 
-        const parameters: IToolParameters = {
+        const parameters: IToolConfiguration = {
             grammarFiles: [join(workDir, runOptions.grammarFileName)],
             outputDirectory: workDir,
-            define: { language: "TypeScript" },
+            language: "TypeScript",
             generateListener: runOptions.useListener,
             generateVisitor: runOptions.useVisitor,
-            exactOutputDir: true
         };
         const queue = this.antlrOnFile(parameters, false);
         this.writeTestFile(workDir, runOptions);

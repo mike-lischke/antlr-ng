@@ -3,9 +3,9 @@
  * Licensed under the BSD 3-clause License. See License.txt in the project root for license information.
  */
 
+import type { IToolConfiguration } from "../../config/config.js";
 import { ModelElement } from "../../misc/ModelElement.js";
 import { OrderedHashMap } from "../../misc/OrderedHashMap.js";
-import type { IToolParameters } from "../../tool-parameters.js";
 import { IOutputModelFactory } from "../IOutputModelFactory.js";
 import { Action } from "./Action.js";
 import { OutputFile } from "./OutputFile.js";
@@ -38,7 +38,7 @@ export class ListenerFile extends OutputFile {
     @ModelElement
     public namedActions: Map<string, Action>;
 
-    public constructor(factory: IOutputModelFactory, fileName: string, toolParameters: IToolParameters) {
+    public constructor(factory: IOutputModelFactory, fileName: string, configuration: IToolConfiguration) {
         super(factory, fileName);
 
         const g = factory.g;
@@ -66,7 +66,7 @@ export class ListenerFile extends OutputFile {
             this.header = new Action(factory, ast);
         }
 
-        this.genPackage = toolParameters.package;
+        this.genPackage = configuration.package;
         this.accessLevel = g.getOptionString("accessLevel");
         this.exportMacro = g.getOptionString("exportMacro");
     }
