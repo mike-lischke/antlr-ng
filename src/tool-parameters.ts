@@ -101,12 +101,17 @@ export const parseToolParameters = (args: string[]): IToolParameters => {
         .option<boolean>("--exact-output-dir <boolean>", "All output goes into -o dir regardless of paths/package",
             parseBoolean)
         .argument("<grammar...>", "A list of grammar files.")
-        .version(`antlr-ng ${antlrVersion}`).action((_, parameters: IToolParameters, command: Command) => {
+        .version(`antlr-ng ${antlrVersion}`)
+        .action((_, parameters: IToolParameters) => {
             // Make sure we only have a config file or other options, but not both.
             if (parameters.config && Object.values(parameters).length > 1) {
                 console.error("Cannot use a config file together with other options.");
 
                 process.exit(1);
+            }
+
+            if (!parameters.config) {
+                console.warn("Command line parameters are deprecated. Use a config file instead.");
             }
         });
 
