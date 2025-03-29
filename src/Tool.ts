@@ -203,7 +203,7 @@ export class Tool implements ITool {
 
         const codeGenerator = new CodeGenerator(g);
 
-        // BUILD ATN FROM AST
+        // Build atn from AST.
         let factory: IATNFactory;
         if (g.isLexer()) {
             factory = new LexerATNFactory(g as LexerGrammar, codeGenerator);
@@ -216,7 +216,7 @@ export class Tool implements ITool {
             this.exportATNDotFiles(g);
         }
 
-        if (genCode && g.tool.getNumErrors() === 0) {
+        if (genCode && g.tool.getNumErrors() === 0 && this.toolConfiguration.generateInterpreterData) {
             const interpFile = Tool.generateInterpreterData(g);
             try {
                 const fileName = this.getOutputFile(g, g.name + ".interp");
@@ -226,7 +226,7 @@ export class Tool implements ITool {
             }
         }
 
-        // PERFORM GRAMMAR ANALYSIS ON ATN: BUILD DECISION DFAs
+        // Perform grammar analysis on ATN: build decision DFAs.
         const anal = new AnalysisPipeline(g);
         anal.process();
 
@@ -234,7 +234,7 @@ export class Tool implements ITool {
             return;
         }
 
-        // GENERATE CODE
+        // Generate code.
         if (genCode) {
             const gen = new CodeGenPipeline(g, codeGenerator, this.toolConfiguration.generateListener,
                 this.toolConfiguration.generateVisitor);
@@ -478,14 +478,12 @@ export class Tool implements ITool {
     }
 
     /**
-     * This method is used by all code generators to create new output files. If the outputDir set by -o is not present
-     * it will be created. The final filename is sensitive to the output directory and the directory where the grammar
-     * file was found. If -o is /tmp and the original grammar file was foo/t.g4 then output files go in /tmp/foo.
+     * This method is used by all code generators that create output files. If the specificed outputDir is not present
+     * it will be created (recursively).
      *
-     * The output dir -o spec takes precedence if it's absolute. E.g., if the grammar file dir is absolute the output
-     * dir is given precedence. "-o /tmp /usr/lib/t.g4" results in "/tmp/T.java" as output (assuming t.g4 holds T.java).
+     * If the output path is relative, it will be resolved relative to the current working directory.
      *
-     * If no -o is specified, then just write to the directory where the grammar file was found.
+     * If no output dir is specified, then just write to the directory where the grammar file was found.
      *
      * @param g The grammar for which we are generating a file.
      * @param fileName The name of the file to generate.
@@ -528,19 +526,17 @@ export class Tool implements ITool {
     }
 
     /**
-     * @returns the location where ANTLR will generate output files for a given file. This is a base directory and
-     * output files will be relative to here in some cases such as when -o option is used and input files are
-     * given relative to the input directory.
+     * @returns the location where antlr-ng will generate output files for a given grammar.
+     * This is either the output directory specified in the configuration or the directory of the input file.
      *
      * @param fileNameWithPath path to input source.
      */
     public getOutputDirectory(fileNameWithPath: string): string {
-        const dirName = dirname(fileNameWithPath);
         if (this.toolConfiguration.outputDirectory) {
             return this.toolConfiguration.outputDirectory;
         }
 
-        return dirName;
+        return dirname(fileNameWithPath);
     }
 
     public logInfo(info: { component?: string, msg: string; }): void {

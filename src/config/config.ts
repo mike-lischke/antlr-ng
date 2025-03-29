@@ -30,7 +30,11 @@ export interface IToolConfiguration {
      */
     grammarFiles: string[];
 
-    /** The target programming language for the generated files. */
+    /**
+     * @deprecated Use the language field in a generator instead.
+     *
+     * The target programming language for the generated files.
+     */
     language?: string;
 
     /** The output directory for the generated files. Relative paths are resolved to the current working directory. */
@@ -54,6 +58,9 @@ export interface IToolConfiguration {
 
     /** Generate a parse tree visitor (default: false). */
     generateVisitor?: boolean,
+
+    /** Generate an interpreter data file (*.interp, default: false). */
+    generateInterpreterData?: boolean;
 
     /** Specify a package/namespace for the generated code. */
     package?: string,
@@ -91,6 +98,7 @@ export const defineConfig = (config: IToolConfiguration): Required<IToolConfigur
         longMessages: config.longMessages ?? false,
         generateListener: config.generateListener ?? false,
         generateVisitor: config.generateVisitor ?? false,
+        generateInterpreterData: config.generateInterpreterData ?? false,
         package: config.package ?? "",
         generateDependencies: config.generateDependencies ?? false,
         warningsAreErrors: config.warningsAreErrors ?? false,
