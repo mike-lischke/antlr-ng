@@ -216,7 +216,7 @@ export class Tool implements ITool {
             this.exportATNDotFiles(g);
         }
 
-        if (genCode && g.tool.getNumErrors() === 0) {
+        if (genCode && g.tool.getNumErrors() === 0 && this.toolConfiguration.generateInterpreterData) {
             const interpFile = Tool.generateInterpreterData(g);
             try {
                 const fileName = this.getOutputFile(g, g.name + ".interp");
